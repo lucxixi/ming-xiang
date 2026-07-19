@@ -1,0 +1,200 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-deep: #04091a;
+  --bg-surface: #0a1628;
+  --bg-card: #0f1f38;
+  --primary: #5bc4e8;
+  --primary-glow: rgba(91, 196, 232, 0.25);
+  --accent: #f0c060;
+  --accent-glow: rgba(240, 192, 96, 0.2);
+  --text: #dde8f5;
+  --text-muted: #6b8aaa;
+  --border: rgba(91, 196, 232, 0.12);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--text);
+  font-family: 'Noto Sans SC', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Star field */
+.stars-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: twinkle var(--dur, 3s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.1; transform: scale(0.8); }
+  100% { opacity: 0.9; transform: scale(1.2); }
+}
+
+/* Breathing circle */
+@keyframes inhale {
+  0% { transform: scale(0.55); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes exhale {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.55); opacity: 0.7; }
+}
+@keyframes hold {
+  0%, 100% { opacity: 1; }
+}
+
+.breath-inhale { animation: inhale var(--dur, 4s) ease-in-out forwards; }
+.breath-exhale { animation: exhale var(--dur, 4s) ease-in-out forwards; }
+.breath-hold { animation: hold var(--dur, 4s) ease-in-out forwards; }
+
+/* Ripple rings */
+@keyframes ripple {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.ripple-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--primary);
+  animation: ripple 3s ease-out infinite;
+}
+.ripple-ring:nth-child(2) { animation-delay: 1s; }
+.ripple-ring:nth-child(3) { animation-delay: 2s; }
+
+/* Thought bubble float */
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 0.85; }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(-120vh) scale(0.5); opacity: 0; }
+}
+.thought-float {
+  animation: floatUp var(--dur, 8s) ease-in forwards;
+}
+
+/* Candle flame */
+@keyframes flameDance {
+  0%, 100% { transform: scaleX(1) scaleY(1) rotate(-1deg); }
+  25% { transform: scaleX(0.85) scaleY(1.08) rotate(2deg); }
+  50% { transform: scaleX(1.1) scaleY(0.95) rotate(-2deg); }
+  75% { transform: scaleX(0.9) scaleY(1.05) rotate(1.5deg); }
+}
+.candle-flame { animation: flameDance 2.5s ease-in-out infinite; transform-origin: center bottom; }
+
+@keyframes flameDanceInner {
+  0%, 100% { transform: scaleX(1) scaleY(1) rotate(1deg); }
+  33% { transform: scaleX(0.8) scaleY(1.1) rotate(-2deg); }
+  66% { transform: scaleX(1.15) scaleY(0.9) rotate(2deg); }
+}
+.candle-flame-inner { animation: flameDanceInner 1.8s ease-in-out infinite; transform-origin: center bottom; }
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 30px 8px rgba(255, 180, 50, 0.3), 0 0 60px 15px rgba(255, 120, 30, 0.15); }
+  50% { box-shadow: 0 0 50px 15px rgba(255, 180, 50, 0.45), 0 0 90px 25px rgba(255, 120, 30, 0.25); }
+}
+.candle-glow { animation: glowPulse 2.5s ease-in-out infinite; }
+
+/* Body scan highlight */
+@keyframes scanPulse {
+  0%, 100% { opacity: 0.4; filter: blur(3px); }
+  50% { opacity: 0.85; filter: blur(1px); }
+}
+.scan-active { animation: scanPulse 1.8s ease-in-out infinite; }
+
+/* Fade in up */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.7s ease-out forwards; }
+.fade-in-up-delay-1 { animation: fadeInUp 0.7s 0.15s ease-out both; }
+.fade-in-up-delay-2 { animation: fadeInUp 0.7s 0.3s ease-out both; }
+.fade-in-up-delay-3 { animation: fadeInUp 0.7s 0.45s ease-out both; }
+.fade-in-up-delay-4 { animation: fadeInUp 0.7s 0.6s ease-out both; }
+.fade-in-up-delay-5 { animation: fadeInUp 0.7s 0.75s ease-out both; }
+
+/* Glow text */
+.glow-text { text-shadow: 0 0 20px rgba(91, 196, 232, 0.5); }
+.glow-gold { text-shadow: 0 0 20px rgba(240, 192, 96, 0.6); }
+
+/* Module card hover */
+.module-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  cursor: pointer;
+}
+.module-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(91, 196, 232, 0.15);
+  border-color: rgba(91, 196, 232, 0.35);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: rgba(91,196,232,0.3); border-radius: 3px; }
+
+/* Bell ring */
+@keyframes bellRing {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(-18deg); }
+  20% { transform: rotate(16deg); }
+  30% { transform: rotate(-12deg); }
+  40% { transform: rotate(10deg); }
+  50% { transform: rotate(-6deg); }
+  60% { transform: rotate(4deg); }
+  70% { transform: rotate(-2deg); }
+  80% { transform: rotate(1deg); }
+}
+.bell-ring { animation: bellRing 1.2s ease-in-out; transform-origin: top center; }
+
+/* Wave pulse for sound */
+@keyframes wavePulse {
+  0% { transform: scaleY(0.3); opacity: 0.5; }
+  50% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.3); opacity: 0.5; }
+}
+.wave-bar { animation: wavePulse var(--spd, 1s) ease-in-out infinite; animation-delay: var(--delay, 0s); }
+
+/* Nav tab underline */
+.nav-tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0; right: 0;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+  box-shadow: 0 0 8px var(--primary);
+}
+
+/* Progress bar fill */
+@keyframes progressFill {
+  from { width: 0%; }
+}
+.progress-fill { animation: progressFill 1s ease-out forwards; }
+
+/* Lotus bloom */
+@keyframes petalBloom {
+  0% { transform: rotate(var(--r, 0deg)) translateY(0) scale(0); opacity: 0; }
+  60% { opacity: 1; }
+  100% { transform: rotate(var(--r, 0deg)) translateY(-28px) scale(1); opacity: 0.85; }
+}
+.petal { animation: petalBloom 2s ease-out forwards; animation-delay: var(--d, 0s); }
