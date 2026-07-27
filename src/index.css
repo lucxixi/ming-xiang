@@ -126,7 +126,6 @@ button:focus-visible, input:focus-visible {
   background: url('/assets/after-rain-window.jpg') center / cover no-repeat;
   border: 1px solid rgba(255, 255, 255, .9);
   box-shadow: 0 24px 70px rgba(49, 78, 61, .08);
-  animation: homeBreathe 18s ease-in-out infinite alternate;
 }
 .welcome-wash {
   position: absolute;
@@ -1006,10 +1005,6 @@ button:focus-visible, input:focus-visible {
 @keyframes imageBreathe {
   from { background-size: 100% auto; }
   to { background-size: 104% auto; }
-}
-@keyframes homeBreathe {
-  from { background-size: 100% auto; }
-  to { background-size: 103% auto; }
 }
 @keyframes countdownBreath {
   0%, 100% { opacity: .55; transform: scale(1); }
