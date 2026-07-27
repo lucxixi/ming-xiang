@@ -55,7 +55,7 @@ button:focus-visible, input:focus-visible {
 .ambient-leaf-two { left: -100px; bottom: 8%; transform: rotate(205deg) scale(.8); }
 
 .topbar {
-  height: 76px;
+  min-height: 76px;
   width: min(1180px, calc(100% - 48px));
   margin: 0 auto;
   display: flex;
@@ -88,28 +88,52 @@ button:focus-visible, input:focus-visible {
   transform: rotate(-8deg);
 }
 .brand-mark svg { transform: rotate(8deg); }
-.topbar-context { display: flex; align-items: center; gap: 22px; color: var(--muted); font-size: 13px; }
-.quiet-button {
+.practice-nav {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.practice-nav::-webkit-scrollbar { display: none; }
+.nav-item {
+  position: relative;
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   border: 0;
   background: transparent;
-  padding: 8px;
+  padding: 10px 11px;
+  border-radius: 12px;
   cursor: pointer;
   color: var(--muted);
+  font-size: 12px;
+  transition: color .2s ease, background .2s ease;
 }
-.quiet-button:hover { color: var(--ink); }
+.nav-item:hover { color: var(--ink); background: rgba(255,255,255,.58); }
+.nav-item.active { color: var(--leaf-dark); background: var(--leaf-pale); font-weight: 600; }
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: -14px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--leaf);
+}
 
 .home, .practice-page { width: min(1180px, calc(100% - 48px)); margin: 0 auto; position: relative; z-index: 2; }
-.home-hero {
-  min-height: 470px;
+.compact-home { min-height: calc(100vh - 76px); display: grid; align-items: center; padding: 28px 0 44px; }
+.welcome-stage {
+  min-height: min(590px, calc(100vh - 148px));
   display: grid;
   grid-template-columns: 1.15fr .85fr;
   align-items: center;
   gap: 44px;
-  padding: 60px 6% 44px;
-  margin-top: 26px;
+  padding: 54px 7%;
   border: 1px solid rgba(255,255,255,.8);
   border-radius: 34px;
   background:
@@ -134,15 +158,10 @@ button:focus-visible, input:focus-visible {
   letter-spacing: -.045em;
 }
 .hero-lead { max-width: 590px; font-size: 17px; line-height: 1.9; color: var(--muted); }
-.safety-note {
-  display: inline-flex;
-  margin-top: 18px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(233, 243, 232, .75);
-  color: #4c665e;
-  font-size: 12px;
-}
+.welcome-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; margin-top: 25px; }
+.welcome-actions .primary-action.large { margin-top: 0; }
+.text-action { display: inline-flex; align-items: center; gap: 7px; padding: 10px 0; border: 0; background: transparent; color: var(--leaf-dark); font-weight: 600; font-size: 13px; cursor: pointer; }
+.welcome-safety { max-width: 570px; margin: 24px 0 0; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.7; }
 .water-signature { min-height: 310px; position: relative; display: grid; place-items: center; }
 .water-signature::after {
   content: '';
@@ -430,7 +449,11 @@ button:focus-visible, input:focus-visible {
 
 @media (max-width: 840px) {
   .topbar, .home, .practice-page { width: min(100% - 28px, 1180px); }
-  .home-hero { grid-template-columns: 1fr; padding: 42px 26px; }
+  .topbar { align-items: flex-start; flex-direction: column; gap: 8px; padding: 13px 0 10px; }
+  .practice-nav { width: 100%; padding-bottom: 3px; }
+  .nav-item.active::after { bottom: -8px; }
+  .compact-home { min-height: calc(100vh - 118px); }
+  .welcome-stage { min-height: calc(100vh - 160px); grid-template-columns: 1fr; padding: 42px 26px; }
   .water-signature { min-height: 220px; }
   .primary-grid, .supporting-grid { grid-template-columns: 1fr; }
   .section-heading { align-items: start; flex-direction: column; }
@@ -446,8 +469,8 @@ button:focus-visible, input:focus-visible {
 }
 
 @media (max-width: 560px) {
-  .topbar-context > span { display: none; }
-  .home-hero { min-height: auto; }
+  .nav-item { padding: 9px 10px; }
+  .welcome-stage { min-height: auto; }
   .hero-copy h1 { font-size: 42px; }
   .primary-practices, .supporting-section { padding-left: 0; padding-right: 0; }
   .practice-card { min-height: 310px; }

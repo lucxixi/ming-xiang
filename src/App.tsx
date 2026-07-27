@@ -1,19 +1,12 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Leaf } from 'lucide-react';
+import { Leaf } from 'lucide-react';
 import BodyScan from './components/BodyScan';
 import BreathingExercise from './components/BreathingExercise';
 import FocusExercise from './components/FocusExercise';
 import HabitTracker from './components/HabitTracker';
 import Home, { type PracticeId } from './components/Home';
+import PracticeNav from './components/PracticeNav';
 import ThoughtBubbles from './components/ThoughtBubbles';
-
-const TITLES: Partial<Record<PracticeId, string>> = {
-  body: '身体扫描',
-  breathing: '自然呼吸',
-  candle: '烛火专注',
-  thoughts: '念头云朵',
-  habit: '练习记录',
-};
 
 export default function App() {
   const [practice, setPractice] = useState<PracticeId>('home');
@@ -51,16 +44,7 @@ export default function App() {
           <span className="brand-mark"><Leaf size={17} /></span>
           <span>Inner Space</span>
         </button>
-
-        {practice !== 'home' && (
-          <div className="topbar-context">
-            <span>{TITLES[practice]}</span>
-            <button className="quiet-button" onClick={goHome}>
-              <ArrowLeft size={15} />
-              返回首页
-            </button>
-          </div>
-        )}
+        <PracticeNav current={practice} onSelect={setPractice} />
       </header>
 
       <main>{renderPractice()}</main>
