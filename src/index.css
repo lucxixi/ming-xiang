@@ -228,78 +228,81 @@ button:focus-visible, input:focus-visible {
 }
 .practice-kicker { text-transform: uppercase; }
 
-.body-stage {
-  background:
-    linear-gradient(90deg, rgba(249, 251, 247, .96) 0%, rgba(249, 251, 247, .86) 48%, rgba(249, 251, 247, .12) 100%),
-    url('/assets/after-rain-window.jpg') center / cover no-repeat;
-}
-.body-layout {
-  position: relative;
-  z-index: 3;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
-  align-items: center;
-  gap: 44px;
-  height: calc(100% - 58px);
-  min-height: 0;
-  padding-bottom: 42px;
-}
-.body-copy { max-width: 620px; }
-.body-copy h2, .breathing-copy h2 {
+.breathing-copy h2 {
   margin: 0;
   font: 600 clamp(28px, 4vw, 48px)/1.42 var(--serif);
   letter-spacing: -.035em;
   text-wrap: balance;
 }
-.body-copy > p:last-of-type, .breathing-copy > p:last-of-type {
+.breathing-copy > p:last-of-type {
   max-width: 560px;
   margin: 15px 0 0;
   color: var(--muted);
   font-size: 12px;
   line-height: 1.75;
 }
-.body-copy .primary-action, .breathing-copy .primary-action { margin-top: 28px; }
-.body-map {
-  display: grid;
-  grid-template-columns: minmax(170px, 1fr) 94px;
-  align-items: center;
-  min-width: 0;
-}
-.body-map svg { width: 100%; height: 390px; overflow: visible; }
-.body-map svg > circle:not(.body-focus), .body-map svg > path {
-  fill: rgba(255, 255, 255, .28);
-  stroke: rgba(21, 63, 53, .34);
-  stroke-width: 1.4;
-}
-.body-focus {
-  fill: rgba(67, 169, 100, .24);
-  stroke: var(--leaf);
-  stroke-width: 2;
-  filter: drop-shadow(0 0 12px rgba(67, 169, 100, .4));
-  transition: cy .7s ease, r .7s ease;
-}
-.body-map ol { list-style: none; padding: 0; margin: 0; }
-.body-map li button {
+.breathing-copy .primary-action { margin-top: 28px; }
+
+.body-audio-stage {
+  position: relative;
   width: 100%;
-  padding: 7px 0;
-  border: 0;
-  background: transparent;
-  color: rgba(21, 63, 53, .55);
-  text-align: left;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .9);
+  background: url('/assets/body-scan-cartoon-v1.jpg') center / cover no-repeat;
+  box-shadow: 0 24px 70px rgba(49, 78, 61, .08);
+}
+.body-audio-shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(250, 251, 247, .42), rgba(250, 251, 247, .04) 72%),
+    linear-gradient(180deg, transparent 58%, rgba(28, 63, 52, .1));
+}
+.body-audio-meta {
+  position: absolute;
+  z-index: 2;
+  top: clamp(24px, 5vh, 42px);
+  right: clamp(28px, 4vw, 52px);
+  left: clamp(28px, 4vw, 52px);
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink);
   font-size: 11px;
-  cursor: pointer;
+  letter-spacing: .12em;
 }
-.body-map li button span {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 9px;
-  border: 1px solid rgba(21, 63, 53, .45);
-  border-radius: 50%;
+.body-audio-meta p { margin: 0; font-weight: 600; }
+.body-caption {
+  position: absolute;
+  z-index: 2;
+  top: 48%;
+  left: clamp(36px, 7vw, 88px);
+  width: min(520px, 43%);
+  padding: 22px 24px;
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 14px;
+  background: rgba(251, 252, 248, .72);
+  box-shadow: 0 16px 40px rgba(39, 70, 57, .1);
+  backdrop-filter: blur(16px);
+  transform: translateY(-50%);
 }
-.body-map li.active button { color: var(--ink); font-weight: 600; }
-.body-map li.active button span { background: var(--leaf); border: 2px solid white; box-shadow: 0 0 0 1px var(--leaf); }
-.body-map li.visited button span { background: #b5d4b9; border-color: #b5d4b9; }
+.body-caption p {
+  margin: 0 0 10px;
+  color: var(--leaf-dark);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+}
+.body-caption h1 {
+  margin: 0;
+  font: 600 clamp(23px, 3vw, 38px)/1.52 var(--serif);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.body-scan-player .guided-tool.active {
+  color: var(--leaf-dark);
+  background: var(--leaf-pale);
+}
 
 .practice-controls {
   position: absolute;
@@ -454,10 +457,6 @@ button:focus-visible, input:focus-visible {
 }
 .is-immersive .practice-title-row .eyebrow { display: none; }
 .is-immersive .practice-title-row h1 { font-size: 18px; letter-spacing: 0; }
-.is-immersive .body-layout { height: 100%; min-height: 0; padding: 64px 4vw 90px; }
-.is-immersive .body-copy h2 { font-size: clamp(32px, 4.5vw, 62px); }
-.is-immersive .body-copy > p:last-of-type { display: none; }
-.is-immersive .body-map svg { height: min(56vh, 480px); }
 .is-immersive .breathing-copy { bottom: 32%; }
 .is-immersive .breathing-copy h2 { font-size: clamp(34px, 5vw, 64px); }
 
@@ -771,9 +770,6 @@ button:focus-visible, input:focus-visible {
   .welcome-stage, .practice-stage, .free-practice-shell { height: 100%; min-height: 0; }
   .welcome-stage { grid-template-columns: minmax(310px, .9fr) minmax(390px, 1.1fr); }
   .hero-copy { padding: 44px; }
-  .body-layout { grid-template-columns: minmax(0, 1fr) 310px; gap: 10px; }
-  .body-map { grid-template-columns: 180px 90px; }
-  .body-map svg { height: 330px; }
   .thought-page .free-practice-heading, .thought-input-row, .suggestion-row { padding-left: 38px; }
   .thought-page .free-footer-actions { margin-left: 38px; }
   .habit-shell { gap: 18px 28px; }
@@ -793,13 +789,14 @@ button:focus-visible, input:focus-visible {
   .welcome-actions { margin-top: 22px; }
   .practice-stage, .free-practice-shell { height: 100%; min-height: 0; padding: 20px; }
   .practice-title-row h1 { font-size: 29px; }
-  .body-layout { height: calc(100% - 56px); grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 8px; padding: 22px 0 78px; }
-  .body-copy h2 { font-size: clamp(24px, 7.5vw, 29px); }
-  .body-copy > p:last-of-type { margin-top: 8px; line-height: 1.55; }
-  .body-copy .primary-action { margin-top: 14px; }
-  .body-map { grid-template-columns: minmax(120px, 150px) 86px; justify-content: center; min-height: 0; }
-  .body-map svg { height: min(27vh, 220px); }
-  .body-map li button { padding: 4px 0; }
+  .body-audio-stage { background-position: 61% center; }
+  .body-caption {
+    top: 52%;
+    left: 18px;
+    width: calc(100% - 36px);
+    padding: 16px 17px;
+  }
+  .body-caption h1 { font-size: clamp(22px, 6.8vw, 29px); }
   .practice-controls { width: calc(100% - 28px); max-width: none; flex-wrap: wrap; }
   .control-button { padding: 8px; }
   .breathing-copy { right: 20px; bottom: 200px; left: 20px; }
@@ -809,9 +806,6 @@ button:focus-visible, input:focus-visible {
   .breathing-stage .practice-controls { right: 14px; left: 14px; bottom: 24px; transform: none; }
   .is-immersive .practice-stage, .is-immersive .free-practice-shell { height: 100svh; min-height: 0; }
   .is-immersive .practice-title-row { top: 22px; right: 22px; left: 22px; }
-  .is-immersive .body-layout { height: 100%; padding: 72px 0 92px; }
-  .is-immersive .body-copy h2 { font-size: 34px; }
-  .is-immersive .body-map { opacity: .72; }
   .is-immersive .breathing-copy { bottom: 38%; }
   .guided-copy { top: 43%; width: calc(100% - 34px); }
   .guided-copy h1 { font-size: clamp(27px, 8vw, 36px); }
@@ -842,8 +836,6 @@ button:focus-visible, input:focus-visible {
 @media (max-height: 700px) and (min-width: 681px) {
   .home, .practice-page { padding-top: 12px; padding-bottom: 12px; }
   .practice-stage, .free-practice-shell { height: 100%; min-height: 0; }
-  .body-layout { height: calc(100% - 50px); min-height: 0; }
-  .body-map svg { height: min(45vh, 290px); }
   .is-immersive .practice-stage, .is-immersive .free-practice-shell { height: 100svh; min-height: 0; }
 }
 

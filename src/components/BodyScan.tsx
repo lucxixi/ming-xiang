@@ -1,6 +1,7 @@
 import { Captions, Pause, Play, SkipForward, Square } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import { useEffect, useMemo, useState } from 'react';
-import { playChime, playScanTone } from '../utils/audio';
+import { playChime, playClick } from '../utils/audio';
 import PracticeComplete from './PracticeComplete';
 
 interface BodyScanProps {
@@ -10,25 +11,24 @@ interface BodyScanProps {
 const TOTAL_SECONDS = 180;
 
 const REGIONS = [
-  { label: '双脚', guide: '把注意力带到双脚与地面的接触。感觉重量、温度，或者什么也感觉不到。', y: 365 },
-  { label: '小腿', guide: '注意小腿此刻的感觉。松、紧、麻、热，都只是现在收到的信息。', y: 306 },
-  { label: '腹部', guide: '注意腹部与衣物的接触。呼吸保持原来的样子，不需要主动放松。', y: 205 },
-  { label: '双手', guide: '感觉双手放在哪里。留意手指、掌心，或者手与腿接触的位置。', y: 222 },
-  { label: '肩颈', guide: '注意肩颈现在是什么状态。不用把紧绷赶走，只需要知道它在这里。', y: 126 },
-  { label: '面部', guide: '感觉额头、眼周和下颌。如果某个部位不舒服，可以直接跳过。', y: 72 },
-  { label: '全身', guide: '把注意范围轻轻扩大到整个身体，以及身体所在的房间。', y: 210 },
+  { label: '双脚', guide: '把注意力带到双脚。感觉它们与地面、衣物或彼此接触的位置。' },
+  { label: '小腿', guide: '注意小腿此刻的感觉。松、紧、麻、热，或者什么也感觉不到。' },
+  { label: '腹部', guide: '感觉腹部随着自然呼吸轻轻变化。不需要主动调整呼吸。' },
+  { label: '双手', guide: '感觉双手放在哪里。留意手指、掌心，以及它们接触到的地方。' },
+  { label: '肩颈', guide: '把注意力带到肩颈。无需赶走紧绷，只需要知道它在这里。' },
+  { label: '面部', guide: '留意额头、眼周和下颌。如果不舒服，可以直接跳过。' },
+  { label: '全身', guide: '让注意范围慢慢扩大，感觉整个身体，以及身体所在的空间。' },
 ];
 
+const REGION_SECONDS = TOTAL_SECONDS / REGIONS.length;
+
 function formatTime(value: number) {
-  const minutes = Math.floor(value / 60);
-  return `${minutes}:${String(value % 60).padStart(2, '0')}`;
+  return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
 }
 
 export default function BodyScan({ onComplete }: BodyScanProps) {
-  const [started, setStarted] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
-  const [remaining, setRemaining] = useState(TOTAL_SECONDS);
-  const [regionIndex, setRegionIndex] = useState(0);
   const [subtitles, setSubtitles] = useState(true);
   const [finished, setFinished] = useState(false);
 
@@ -36,51 +36,43 @@ export default function BodyScan({ onComplete }: BodyScanProps) {
     if (!running || finished) return;
 
     const timer = window.setInterval(() => {
-      setRemaining(value => {
-        if (value <= 1) {
+      setElapsed(value => {
+        if (value >= TOTAL_SECONDS - 1) {
           window.clearInterval(timer);
           setRunning(false);
           setFinished(true);
           playChime();
-          return 0;
+          return TOTAL_SECONDS;
         }
-        return value - 1;
+        return value + 1;
       });
     }, 1000);
 
     return () => window.clearInterval(timer);
   }, [running, finished]);
 
-  const elapsed = TOTAL_SECONDS - remaining;
-  const automaticIndex = Math.min(REGIONS.length - 1, Math.floor(elapsed / 25));
-
-  useEffect(() => {
-    if (!started || !running || automaticIndex <= regionIndex) return;
-    setRegionIndex(automaticIndex);
-    playScanTone(automaticIndex);
-  }, [automaticIndex, regionIndex, running, started]);
-
+  const regionIndex = useMemo(
+    () => Math.min(REGIONS.length - 1, Math.floor(elapsed / REGION_SECONDS)),
+    [elapsed],
+  );
   const current = REGIONS[regionIndex];
-  const progress = useMemo(() => ((TOTAL_SECONDS - remaining) / TOTAL_SECONDS) * 100, [remaining]);
-
-  const start = () => {
-    setStarted(true);
-    setRunning(true);
-    playScanTone(0);
-  };
 
   const restart = () => {
-    setStarted(false);
+    setElapsed(0);
     setRunning(false);
     setFinished(false);
-    setRemaining(TOTAL_SECONDS);
-    setRegionIndex(0);
+    setSubtitles(true);
+  };
+
+  const togglePlayback = () => {
+    setRunning(value => !value);
+    playClick();
   };
 
   const skipRegion = () => {
-    const next = Math.min(REGIONS.length - 1, regionIndex + 1);
-    setRegionIndex(next);
-    playScanTone(next);
+    const next = Math.min(TOTAL_SECONDS, Math.ceil((regionIndex + 1) * REGION_SECONDS));
+    setElapsed(next);
+    playClick();
   };
 
   if (finished) {
@@ -92,81 +84,63 @@ export default function BodyScan({ onComplete }: BodyScanProps) {
   }
 
   return (
-    <div className={started ? 'practice-page body-practice is-immersive' : 'practice-page body-practice'}>
-      <section className="practice-stage body-stage">
-        <div className="practice-title-row">
-          <div>
-            <p className="eyebrow">3 分钟 · 身体接触与感觉</p>
-            <h1>身体扫描</h1>
-          </div>
-          <time>{formatTime(remaining)}</time>
+    <div className="practice-page body-practice">
+      <section className="body-audio-stage">
+        <div className="body-audio-shade" aria-hidden="true" />
+
+        <div className="body-audio-meta">
+          <p>身体扫描</p>
+          <span>3 分钟</span>
         </div>
 
-        <div className="body-layout">
-          <div className="body-copy">
-            {!started ? (
-              <>
-                <p className="practice-kicker">跟随身体的感觉</p>
-                <h2>从最容易感知的位置开始。</h2>
-                <p>
-                  不需要放松每一个部位，也不需要获得特别的感觉。你可以睁眼，任何区域都能跳过。
-                </p>
-                <button className="primary-action large" onClick={start}>
-                  <Play size={18} />
-                  开始身体扫描
-                </button>
-              </>
-            ) : (
-              <>
-                <p className="practice-kicker">现在 · {current.label}</p>
-                <h2>{subtitles ? current.guide : '把注意力轻轻放在这里。'}</h2>
-                <p>注意跑开时，只需知道它跑开了，再选择是否回来。</p>
-              </>
-            )}
-          </div>
-
-          <div className="body-map" aria-label={`当前扫描部位：${current.label}`}>
-            <svg viewBox="0 0 220 430" role="img" aria-hidden="true">
-              <circle cx="110" cy="65" r="34" />
-              <path d="M82 108 Q110 96 138 108 L151 231 Q135 250 110 250 Q85 250 69 231Z" />
-              <path d="M74 121 Q52 159 45 230 Q43 252 57 260 Q69 241 73 205 L88 132Z" />
-              <path d="M146 121 Q168 159 175 230 Q177 252 163 260 Q151 241 147 205 L132 132Z" />
-              <path d="M82 242 Q72 310 77 393 Q88 408 100 393 L108 251Z" />
-              <path d="M138 242 Q148 310 143 393 Q132 408 120 393 L112 251Z" />
-              <circle className="body-focus" cx="110" cy={current.y} r={current.label === '全身' ? 74 : 24} />
-            </svg>
-
-            <ol>
-              {REGIONS.map((region, index) => (
-                <li key={region.label} className={index === regionIndex ? 'active' : index < regionIndex ? 'visited' : ''}>
-                  <button onClick={() => setRegionIndex(index)} disabled={!started}>
-                    <span />
-                    {region.label}
-                  </button>
-                </li>
-              ))}
-            </ol>
-          </div>
+        <div className="body-caption" aria-live="polite">
+          <p>现在 · {current.label}</p>
+          <h1>{subtitles ? current.guide : '把注意力轻轻放在这里。'}</h1>
         </div>
 
-        {started && (
-          <div className="practice-controls">
-            <button className="round-control" onClick={() => setRunning(value => !value)} aria-label={running ? '暂停' : '继续'}>
-              {running ? <Pause size={20} /> : <Play size={20} />}
-            </button>
-            <button className={subtitles ? 'control-button active' : 'control-button'} onClick={() => setSubtitles(value => !value)}>
-              <Captions size={18} /> 字幕
-            </button>
-            <button className="control-button" onClick={skipRegion}>
-              <SkipForward size={18} /> 跳过这个部位
-            </button>
-            <button className="control-button danger" onClick={() => { setRunning(false); setFinished(true); }}>
-              <Square size={16} /> 结束练习
-            </button>
-          </div>
-        )}
+        <div className="body-scan-player guided-player" aria-label="3 分钟身体扫描播放器">
+          <button className="guided-play" onClick={togglePlayback} aria-label={running ? '暂停身体扫描' : '播放身体扫描'}>
+            {running ? <Pause size={21} /> : <Play size={21} />}
+          </button>
 
-        <div className="practice-progress"><span style={{ width: `${progress}%` }} /></div>
+          <div className="guided-timeline">
+            <input
+              aria-label="身体扫描进度"
+              type="range"
+              min="0"
+              max={TOTAL_SECONDS}
+              value={elapsed}
+              onChange={event => setElapsed(Number(event.target.value))}
+              onClick={event => {
+                const bounds = event.currentTarget.getBoundingClientRect();
+                const ratio = (event.clientX - bounds.left) / bounds.width;
+                setElapsed(Math.round(Math.max(0, Math.min(1, ratio)) * TOTAL_SECONDS));
+              }}
+              onKeyDown={event => {
+                if (event.key === 'Home') setElapsed(0);
+                if (event.key === 'End') setElapsed(TOTAL_SECONDS);
+                if (event.key === 'ArrowLeft') setElapsed(value => Math.max(0, value - 5));
+                if (event.key === 'ArrowRight') setElapsed(value => Math.min(TOTAL_SECONDS, value + 5));
+              }}
+              style={{ '--guided-progress': `${elapsed / TOTAL_SECONDS * 100}%` } as CSSProperties}
+            />
+            <div>
+              <time>{formatTime(elapsed)}</time>
+              <span>{current.label}</span>
+              <time>-{formatTime(TOTAL_SECONDS - elapsed)}</time>
+            </div>
+          </div>
+
+          <button className={subtitles ? 'guided-tool active' : 'guided-tool'} onClick={() => setSubtitles(value => !value)} aria-label="切换字幕">
+            <Captions size={18} />
+          </button>
+          <button className="guided-tool" onClick={skipRegion} aria-label="跳过这个部位">
+            <SkipForward size={18} />
+          </button>
+          <button className="guided-tool guided-exit" onClick={() => setFinished(true)} aria-label="结束身体扫描">
+            <Square size={15} />
+          </button>
+        </div>
       </section>
     </div>
   );
