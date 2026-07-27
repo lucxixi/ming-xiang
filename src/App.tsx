@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Leaf } from 'lucide-react';
 import BodyScan from './components/BodyScan';
 import BreathingExercise from './components/BreathingExercise';
-import FocusExercise from './components/FocusExercise';
+import GuidedMeditation from './components/GuidedMeditation';
 import HabitTracker from './components/HabitTracker';
 import Home, { type PracticeId } from './components/Home';
 import PracticeNav from './components/PracticeNav';
@@ -23,8 +23,8 @@ export default function App() {
         return <BodyScan onComplete={goHome} />;
       case 'breathing':
         return <BreathingExercise onComplete={goHome} />;
-      case 'candle':
-        return <FocusExercise onComplete={goHome} />;
+      case 'guided':
+        return <GuidedMeditation onComplete={goHome} />;
       case 'thoughts':
         return <ThoughtBubbles onComplete={goHome} />;
       case 'habit':

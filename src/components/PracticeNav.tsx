@@ -1,11 +1,11 @@
-import { CalendarDays, Cloud, Flame, Home, ScanLine, Waves } from 'lucide-react';
+import { CalendarDays, Cloud, Headphones, Home, ScanLine, Waves } from 'lucide-react';
 import type { PracticeId } from './Home';
 
 const pages = [
   { id: 'home' as const, icon: Home, label: '欢迎' },
   { id: 'body' as const, icon: ScanLine, label: '身体扫描' },
   { id: 'breathing' as const, icon: Waves, label: '自然呼吸' },
-  { id: 'candle' as const, icon: Flame, label: '烛火专注' },
+  { id: 'guided' as const, icon: Headphones, label: '完整跟练' },
   { id: 'thoughts' as const, icon: Cloud, label: '念头云朵' },
   { id: 'habit' as const, icon: CalendarDays, label: '练习记录' },
 ];

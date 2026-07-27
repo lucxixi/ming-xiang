@@ -472,80 +472,134 @@ button:focus-visible, input:focus-visible {
   line-height: 1.7;
 }
 
-.candle-shell {
-  display: grid;
-  grid-template-columns: minmax(330px, .82fr) minmax(520px, 1.18fr);
-  grid-template-rows: 1fr auto;
-  gap: 22px 44px;
-  padding: 0;
-  background: var(--paper);
-}
-.candle-shell .free-practice-heading {
-  align-self: end;
-  padding: 60px 0 0 clamp(38px, 6vw, 78px);
-}
-.candle-scene {
+.guided-stage {
   position: relative;
-  grid-column: 2;
-  grid-row: 1 / 3;
-  min-height: 100%;
-  background: url('/assets/rain-window-candle.jpg') center / cover no-repeat;
-  animation: imageBreathe 16s ease-in-out infinite alternate;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .9);
+  background: url('/assets/rain-lake.jpg') center / cover no-repeat;
+  box-shadow: 0 24px 70px rgba(49, 78, 61, .08);
 }
-.candle-scene time {
+.guided-shade {
   position: absolute;
-  top: 40px;
-  right: 44px;
-  font: 500 22px/1 var(--serif);
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(247, 250, 247, .24), rgba(247, 250, 247, .06) 55%, rgba(17, 56, 47, .16)),
+    radial-gradient(circle at 50% 46%, rgba(255, 255, 255, .44), transparent 42%);
 }
-.focus-setup {
-  align-self: start;
-  padding: 0 0 60px clamp(38px, 6vw, 78px);
-}
-.focus-setup > span { display: block; margin-bottom: 10px; color: var(--muted); font-size: 11px; }
-.focus-setup > div { display: flex; gap: 6px; }
-.focus-setup > div button {
-  padding: 8px 13px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: white;
+.guided-meta {
+  position: absolute;
+  z-index: 2;
+  top: clamp(24px, 5vh, 42px);
+  right: clamp(28px, 4vw, 52px);
+  left: clamp(28px, 4vw, 52px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--ink);
   font-size: 11px;
-  cursor: pointer;
+  letter-spacing: .12em;
 }
-.focus-setup > div button.active { color: var(--leaf-dark); border-color: var(--leaf); background: var(--leaf-pale); }
-.focus-setup .primary-action { margin-top: 20px; }
-.return-button {
-  align-self: start;
-  justify-self: start;
-  margin: 0 0 60px clamp(38px, 6vw, 78px);
-  padding: 12px 22px;
-  border: 1px solid var(--leaf);
-  border-radius: 999px;
-  background: white;
+.guided-meta p { margin: 0; font-weight: 600; }
+.guided-meta span { font-variant-numeric: tabular-nums; }
+.guided-copy {
+  position: absolute;
+  z-index: 2;
+  top: 46%;
+  left: 50%;
+  width: min(850px, calc(100% - 64px));
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+.guided-copy p {
+  margin: 0 0 14px;
   color: var(--leaf-dark);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .12em;
+}
+.guided-copy h1 {
+  margin: 0;
+  font: 600 clamp(34px, 5vw, 62px)/1.42 var(--serif);
+  letter-spacing: -.045em;
+  text-wrap: balance;
+  text-shadow: 0 1px 22px rgba(255, 255, 255, .72);
+}
+.guided-player {
+  position: absolute;
+  z-index: 3;
+  right: 50%;
+  bottom: clamp(20px, 4vh, 34px);
+  display: grid;
+  grid-template-columns: 50px minmax(240px, 1fr) 38px 38px 38px;
+  align-items: center;
+  gap: 10px;
+  width: min(760px, calc(100% - 64px));
+  padding: 11px 13px;
+  border: 1px solid rgba(255, 255, 255, .72);
+  border-radius: 16px;
+  background: rgba(250, 252, 248, .82);
+  box-shadow: 0 18px 42px rgba(36, 69, 55, .16);
+  backdrop-filter: blur(20px);
+  transform: translateX(50%);
+}
+.guided-play, .guided-tool {
+  display: grid;
+  place-items: center;
+  border: 0;
   cursor: pointer;
 }
-.return-button span { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
-.candle-page.is-immersive .candle-shell { grid-template-columns: minmax(320px, .72fr) minmax(0, 1.28fr); }
-.candle-page.is-immersive .free-practice-heading {
-  position: absolute;
-  top: 40px;
-  left: 40px;
-  width: 250px;
-  padding: 0;
+.guided-play {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  color: white;
+  background: var(--leaf);
 }
-.candle-page.is-immersive .return-button {
-  position: absolute;
-  z-index: 5;
-  bottom: 104px;
-  left: 40px;
+.guided-tool {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  color: var(--muted);
+  background: transparent;
+}
+.guided-tool:hover { color: var(--ink); background: rgba(255, 255, 255, .72); }
+.guided-exit { color: #98564f; }
+.guided-timeline { min-width: 0; }
+.guided-timeline input {
+  --guided-progress: 0%;
+  width: 100%;
+  height: 18px;
+  display: block;
   margin: 0;
+  appearance: none;
+  border-radius: 999px;
+  background:
+    linear-gradient(to right, var(--leaf) var(--guided-progress), rgba(21, 63, 53, .14) var(--guided-progress))
+    center / 100% 3px no-repeat;
+  cursor: pointer;
 }
-.candle-page.is-immersive .practice-controls {
-  right: auto;
-  left: 40px;
-  transform: none;
+.guided-timeline input::-webkit-slider-thumb {
+  width: 11px;
+  height: 11px;
+  appearance: none;
+  border: 2px solid white;
+  border-radius: 50%;
+  background: var(--leaf);
+  box-shadow: 0 0 0 1px var(--leaf);
 }
+.guided-timeline > div {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.guided-timeline > div span { text-align: center; }
+.guided-timeline > div time:last-child { text-align: right; }
 
 .thought-page .free-practice-shell {
   display: grid;
@@ -720,8 +774,6 @@ button:focus-visible, input:focus-visible {
   .body-layout { grid-template-columns: minmax(0, 1fr) 310px; gap: 10px; }
   .body-map { grid-template-columns: 180px 90px; }
   .body-map svg { height: 330px; }
-  .candle-shell, .thought-page .free-practice-shell { grid-template-columns: minmax(290px, .9fr) minmax(390px, 1.1fr); }
-  .candle-shell .free-practice-heading, .focus-setup { padding-left: 38px; }
   .thought-page .free-practice-heading, .thought-input-row, .suggestion-row { padding-left: 38px; }
   .thought-page .free-footer-actions { margin-left: 38px; }
   .habit-shell { gap: 18px 28px; }
@@ -761,17 +813,18 @@ button:focus-visible, input:focus-visible {
   .is-immersive .body-copy h2 { font-size: 34px; }
   .is-immersive .body-map { opacity: .72; }
   .is-immersive .breathing-copy { bottom: 38%; }
-  .candle-shell, .thought-page .free-practice-shell { height: 100%; min-height: 0; display: flex; flex-direction: column; padding: 0; }
-  .candle-scene { order: -1; width: 100%; min-height: 0; flex: 0 0 42%; background-position: 70% center; }
-  .candle-shell .free-practice-heading, .focus-setup { padding: 0 24px; }
-  .candle-shell .free-practice-heading { margin-top: 26px; }
-  .focus-setup { padding-bottom: 30px; }
-  .return-button { margin: 0 24px 110px; }
-  .candle-page.is-immersive .candle-shell { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr auto auto; }
-  .candle-page.is-immersive .candle-scene { position: absolute; inset: 0; min-height: 100%; }
-  .candle-page.is-immersive .free-practice-heading { padding: 12vh 24px 0; color: var(--ink); }
-  .candle-page.is-immersive .return-button { z-index: 2; align-self: end; }
-  .candle-page.is-immersive .practice-controls { right: 14px; left: 14px; }
+  .guided-copy { top: 43%; width: calc(100% - 34px); }
+  .guided-copy h1 { font-size: clamp(27px, 8vw, 36px); }
+  .guided-player {
+    grid-template-columns: 45px minmax(0, 1fr) 34px 34px 34px;
+    gap: 4px;
+    width: calc(100% - 24px);
+    padding: 9px;
+  }
+  .guided-play { width: 43px; height: 43px; }
+  .guided-tool { width: 32px; height: 32px; }
+  .guided-timeline > div { grid-template-columns: 42px 1fr 42px; }
+  .thought-page .free-practice-shell { height: 100%; min-height: 0; display: flex; flex-direction: column; padding: 0; }
   .thought-page .free-practice-heading { order: 1; padding: 26px 24px 0; }
   .thought-sky { order: 0; width: 100%; min-height: 0; flex: 0 0 40%; }
   .thought-input-row, .suggestion-row { order: 2; padding: 0 24px; }

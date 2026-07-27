@@ -1,6 +1,6 @@
 import { ArrowRight, Waves } from 'lucide-react';
 
-export type PracticeId = 'home' | 'body' | 'breathing' | 'candle' | 'thoughts' | 'habit';
+export type PracticeId = 'home' | 'body' | 'breathing' | 'guided' | 'thoughts' | 'habit';
 
 interface HomeProps {
   onSelect: (practice: PracticeId) => void;
