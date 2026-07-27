@@ -1,242 +1,173 @@
-import { useState, useRef } from 'react';
-import { Play, Pause, CheckCircle, ChevronRight } from 'lucide-react';
-import { playScanTone, playChime, playClick } from '../utils/audio';
+import { Captions, Pause, Play, SkipForward, Square } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { playChime, playScanTone } from '../utils/audio';
+import PracticeComplete from './PracticeComplete';
 
 interface BodyScanProps {
   onComplete: () => void;
 }
 
+const TOTAL_SECONDS = 180;
+
 const REGIONS = [
-  { id: 'head',  label: '头部',     hint: '放松额头的紧绷感，让眼皮沉下来，松开下颌，感受头皮轻轻扩展...', y: 60,  x: 120, rx: 32, ry: 24 },
-  { id: 'neck',  label: '颈肩',     hint: '让肩膀自然下沉，感受颈部两侧的肌肉慢慢松开，不要用力...', y: 118, x: 120, rx: 30, ry: 14 },
-  { id: 'chest', label: '胸腹',     hint: '感受每次呼吸时胸腔轻轻起伏，让腹部完全放松，没有收着...', y: 178, x: 120, rx: 38, ry: 28 },
-  { id: 'arms',  label: '手臂与手', hint: '感受手指的重量，让双臂完全垂落，感受血液流向指尖...', y: 200, x: 120, rx: 58, ry: 18 },
-  { id: 'hips',  label: '髋部',     hint: '感受臀部与坐垫的接触，让整个骨盆区域沉下去...', y: 248, x: 120, rx: 28, ry: 18 },
-  { id: 'legs',  label: '腿部',     hint: '感受大腿和小腿的重量，双腿自然伸展，膝盖松开...', y: 315, x: 120, rx: 32, ry: 22 },
-  { id: 'feet',  label: '双脚',     hint: '感受脚跟与地面的接触，脚趾完全松开，像棉花一样...', y: 385, x: 120, rx: 24, ry: 16 },
+  { label: '双脚', guide: '把注意力带到双脚与地面的接触。感觉重量、温度，或者什么也感觉不到。', y: 365 },
+  { label: '小腿', guide: '注意小腿此刻的感觉。松、紧、麻、热，都只是现在收到的信息。', y: 306 },
+  { label: '腹部', guide: '注意腹部与衣物的接触。呼吸保持原来的样子，不需要主动放松。', y: 205 },
+  { label: '双手', guide: '感觉双手放在哪里。留意手指、掌心，或者手与腿接触的位置。', y: 222 },
+  { label: '肩颈', guide: '注意肩颈现在是什么状态。不用把紧绷赶走，只需要知道它在这里。', y: 126 },
+  { label: '面部', guide: '感觉额头、眼周和下颌。如果某个部位不舒服，可以直接跳过。', y: 72 },
+  { label: '全身', guide: '把注意范围轻轻扩大到整个身体，以及身体所在的房间。', y: 210 },
 ];
 
+function formatTime(value: number) {
+  const minutes = Math.floor(value / 60);
+  return `${minutes}:${String(value % 60).padStart(2, '0')}`;
+}
+
 export default function BodyScan({ onComplete }: BodyScanProps) {
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const [started, setStarted] = useState(false);
   const [running, setRunning] = useState(false);
-  const [autoCompleted, setAutoCompleted] = useState(false);
-  const [visited, setVisited] = useState<Set<number>>(new Set());
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const autoIndexRef = useRef(0);
-  const [scanProgress, setScanProgress] = useState(0);
+  const [remaining, setRemaining] = useState(TOTAL_SECONDS);
+  const [regionIndex, setRegionIndex] = useState(0);
+  const [subtitles, setSubtitles] = useState(true);
+  const [finished, setFinished] = useState(false);
 
-  const canComplete = visited.size >= 3 || autoCompleted;
+  useEffect(() => {
+    if (!running || finished) return;
 
-  const stopAuto = () => { if (timerRef.current) clearInterval(timerRef.current); };
+    const timer = window.setInterval(() => {
+      setRemaining(value => {
+        if (value <= 1) {
+          window.clearInterval(timer);
+          setRunning(false);
+          setFinished(true);
+          playChime();
+          return 0;
+        }
+        return value - 1;
+      });
+    }, 1000);
 
-  const handleRegionClick = (i: number) => {
-    if (running) return;
-    playClick();
-    playScanTone(i);
-    setActiveIndex(prev => prev === i ? -1 : i);
-    setVisited(prev => new Set([...prev, i]));
-  };
+    return () => window.clearInterval(timer);
+  }, [running, finished]);
 
-  const startAuto = () => {
-    stopAuto();
-    setAutoCompleted(false);
-    setActiveIndex(0);
-    setVisited(new Set([0]));
-    playScanTone(0);
-    autoIndexRef.current = 0;
-    setScanProgress(0);
+  const elapsed = TOTAL_SECONDS - remaining;
+  const automaticIndex = Math.min(REGIONS.length - 1, Math.floor(elapsed / 25));
+
+  useEffect(() => {
+    if (!started || !running || automaticIndex <= regionIndex) return;
+    setRegionIndex(automaticIndex);
+    playScanTone(automaticIndex);
+  }, [automaticIndex, regionIndex, running, started]);
+
+  const current = REGIONS[regionIndex];
+  const progress = useMemo(() => ((TOTAL_SECONDS - remaining) / TOTAL_SECONDS) * 100, [remaining]);
+
+  const start = () => {
+    setStarted(true);
     setRunning(true);
-
-    timerRef.current = setInterval(() => {
-      autoIndexRef.current += 1;
-      setScanProgress(autoIndexRef.current);
-      if (autoIndexRef.current >= REGIONS.length) {
-        stopAuto();
-        setRunning(false);
-        setActiveIndex(-1);
-        setAutoCompleted(true);
-        playChime();
-      } else {
-        setActiveIndex(autoIndexRef.current);
-        setVisited(prev => new Set([...prev, autoIndexRef.current]));
-        playScanTone(autoIndexRef.current);
-      }
-    }, 5000);
+    playScanTone(0);
   };
 
-  const stopScan = () => { stopAuto(); setRunning(false); setActiveIndex(-1); };
+  const restart = () => {
+    setStarted(false);
+    setRunning(false);
+    setFinished(false);
+    setRemaining(TOTAL_SECONDS);
+    setRegionIndex(0);
+  };
 
-  const currentRegion = activeIndex >= 0 ? REGIONS[activeIndex] : null;
+  const skipRegion = () => {
+    const next = Math.min(REGIONS.length - 1, regionIndex + 1);
+    setRegionIndex(next);
+    playScanTone(next);
+  };
+
+  if (finished) {
+    return (
+      <div className="practice-page completion-page">
+        <PracticeComplete onLeave={onComplete} onAgain={restart} />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen px-4 py-24 max-w-3xl mx-auto">
-      <div className="fade-in-up mb-6">
-        <div className="text-xs tracking-widest mb-3 font-medium" style={{ color: 'var(--primary)' }}>MODULE 03</div>
-        <h2 className="text-3xl md:text-4xl font-bold mb-3" style={{ fontFamily: 'Noto Serif SC', color: 'var(--text)' }}>
-          身体扫描冥想
-        </h2>
-        <p className="text-sm" style={{ color: 'var(--text-muted)', lineHeight: '1.9' }}>
-          将注意力从头到脚依次移动，感知每个部位。<br/>
-          <span style={{ color: 'var(--primary)' }}>点击身体部位</span>单独体验，或<span style={{ color: 'var(--primary)' }}>开始自动引导</span>。探索3个部位后即可继续。
-        </p>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-8 items-start">
-        {/* Body SVG */}
-        <div className="flex-shrink-0 mx-auto md:mx-0 fade-in-up-delay-1">
-          <svg width="240" height="440" viewBox="0 0 240 440">
-            {activeIndex >= 0 && (
-              <ellipse cx={REGIONS[activeIndex].x} cy={REGIONS[activeIndex].y}
-                rx={REGIONS[activeIndex].rx + 22} ry={REGIONS[activeIndex].ry + 18}
-                fill="rgba(91,196,232,0.1)" className="scan-active" />
-            )}
-            {/* Body */}
-            <circle cx="120" cy="60" r="32" fill="rgba(255,255,255,0.055)" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <rect x="109" y="90" width="22" height="18" rx="8" fill="rgba(255,255,255,0.055)" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <path d="M60,115 Q90,108 120,108 Q150,108 180,115 L184,150 Q150,145 120,145 Q90,145 56,150 Z"
-              fill="rgba(255,255,255,0.055)" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <rect x="79" y="145" width="82" height="100" rx="12" fill="rgba(255,255,255,0.055)" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <path d="M79,150 Q56,175 52,222 Q50,242 57,256 Q67,242 71,222 Q76,175 86,155 Z"
-              fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-            <path d="M161,150 Q184,175 188,222 Q190,242 183,256 Q173,242 169,222 Q164,175 154,155 Z"
-              fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-            <path d="M79,245 Q81,265 86,276 Q100,281 120,281 Q140,281 154,276 Q159,265 161,245 Z"
-              fill="rgba(255,255,255,0.055)" stroke="rgba(255,255,255,0.14)" strokeWidth="1.5" />
-            <path d="M86,276 Q81,310 83,360 Q85,390 89,406 Q101,411 106,406 Q109,390 109,360 Q111,310 116,276 Z"
-              fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-            <path d="M154,276 Q159,310 157,360 Q155,390 151,406 Q139,411 134,406 Q131,390 131,360 Q129,310 124,276 Z"
-              fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-
-            {running && activeIndex >= 0 && (
-              <line x1="40" y1={REGIONS[activeIndex].y} x2="200" y2={REGIONS[activeIndex].y}
-                stroke="rgba(91,196,232,0.35)" strokeWidth="1" strokeDasharray="4 3" />
-            )}
-
-            {REGIONS.map((r, i) => {
-              const isActive = activeIndex === i;
-              const isVisited = visited.has(i);
-              return (
-                <g key={r.id} onClick={() => handleRegionClick(i)} style={{ cursor: running ? 'default' : 'pointer' }}>
-                  <ellipse cx={r.x} cy={r.y} rx={r.rx} ry={r.ry}
-                    fill={isActive ? 'rgba(91,196,232,0.28)' : isVisited ? 'rgba(91,196,232,0.05)' : 'rgba(91,196,232,0)'}
-                    stroke={isActive ? 'rgba(91,196,232,0.85)' : isVisited ? 'rgba(91,196,232,0.3)' : 'rgba(91,196,232,0.18)'}
-                    strokeWidth={isActive ? 1.5 : 1}
-                    style={{
-                      filter: isActive ? 'drop-shadow(0 0 7px rgba(91,196,232,0.55))' : 'none',
-                      transition: 'all 0.35s ease',
-                    }} />
-                  <text x={r.x + r.rx + 5} y={r.y + 4}
-                    fill={isActive ? 'rgba(91,196,232,0.95)' : isVisited ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)'}
-                    fontSize="9.5" fontFamily="Noto Sans SC" style={{ pointerEvents: 'none', transition: 'fill 0.3s' }}>
-                    {r.label}{isVisited && !isActive ? ' ✓' : ''}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
+    <div className="practice-page body-practice">
+      <section className="practice-stage">
+        <div className="practice-title-row">
+          <div>
+            <p className="eyebrow">3 分钟 · 身体接触与感觉</p>
+            <h1>身体扫描</h1>
+          </div>
+          <time>{formatTime(remaining)}</time>
         </div>
 
-        {/* Right panel */}
-        <div className="flex-1 fade-in-up-delay-2">
-          {/* Hint box */}
-          <div className="rounded-2xl p-5 mb-4 min-h-28 transition-all duration-400"
-            style={{
-              background: currentRegion ? 'rgba(91,196,232,0.07)' : 'var(--bg-card)',
-              border: `1px solid ${currentRegion ? 'rgba(91,196,232,0.28)' : 'var(--border)'}`,
-            }}>
-            {currentRegion ? (
+        <div className="body-layout">
+          <div className="body-copy">
+            {!started ? (
               <>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 rounded-full scan-active" style={{ background: 'var(--primary)' }} />
-                  <span className="text-sm font-semibold" style={{ color: 'var(--primary)' }}>{currentRegion.label}</span>
-                </div>
-                <p className="text-sm" style={{ color: 'var(--text)', lineHeight: '1.95' }}>{currentRegion.hint}</p>
-                <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
-                  {running ? '5秒后自动移到下一区域...' : '点击其他部位继续探索'}
+                <p className="practice-kicker">跟随身体的感觉</p>
+                <h2>从最容易感知的位置开始。</h2>
+                <p>
+                  不需要放松每一个部位，也不需要获得特别的感觉。你可以睁眼，任何区域都能跳过。
                 </p>
+                <button className="primary-action large" onClick={start}>
+                  <Play size={18} />
+                  开始身体扫描
+                </button>
               </>
             ) : (
-              <div className="flex flex-col items-center justify-center h-20 text-center gap-2">
-                {autoCompleted ? (
-                  <><div className="text-xl">✨</div><p className="text-sm" style={{ color: '#7dd6a8' }}>身体扫描完成！感受全身的放松</p></>
-                ) : visited.size > 0 ? (
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>已探索 {visited.size}/{REGIONS.length} 个区域</p>
-                ) : (
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>点击左侧身体的任意部位开始</p>
-                )}
-              </div>
+              <>
+                <p className="practice-kicker">现在 · {current.label}</p>
+                <h2>{subtitles ? current.guide : '把注意力轻轻放在这里。'}</h2>
+                <p>注意跑开时，只需知道它跑开了，再选择是否回来。</p>
+              </>
             )}
           </div>
 
-          {/* Auto progress */}
-          {running && (
-            <div className="mb-4">
-              <div className="flex justify-between text-xs mb-1.5" style={{ color: 'var(--text-muted)' }}>
-                <span>自动扫描中</span><span>{Math.min(scanProgress + 1, REGIONS.length)}/{REGIONS.length}</span>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <div className="h-full rounded-full transition-all duration-1000"
-                  style={{ width: `${((scanProgress + 1) / REGIONS.length) * 100}%`, background: 'var(--primary)' }} />
-              </div>
-            </div>
-          )}
+          <div className="body-map" aria-label={`当前扫描部位：${current.label}`}>
+            <svg viewBox="0 0 220 430" role="img" aria-hidden="true">
+              <circle cx="110" cy="65" r="34" />
+              <path d="M82 108 Q110 96 138 108 L151 231 Q135 250 110 250 Q85 250 69 231Z" />
+              <path d="M74 121 Q52 159 45 230 Q43 252 57 260 Q69 241 73 205 L88 132Z" />
+              <path d="M146 121 Q168 159 175 230 Q177 252 163 260 Q151 241 147 205 L132 132Z" />
+              <path d="M82 242 Q72 310 77 393 Q88 408 100 393 L108 251Z" />
+              <path d="M138 242 Q148 310 143 393 Q132 408 120 393 L112 251Z" />
+              <circle className="body-focus" cx="110" cy={current.y} r={current.label === '全身' ? 74 : 24} />
+            </svg>
 
-          {/* Visited chips */}
-          {!running && visited.size > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-4">
-              {REGIONS.map((r, i) => (
-                <span key={r.id} className="text-xs px-2 py-0.5 rounded-full transition-all"
-                  style={{
-                    background: visited.has(i) ? 'rgba(91,196,232,0.12)' : 'rgba(255,255,255,0.04)',
-                    border: `1px solid ${visited.has(i) ? 'rgba(91,196,232,0.3)' : 'rgba(255,255,255,0.06)'}`,
-                    color: visited.has(i) ? 'var(--primary)' : 'var(--text-muted)',
-                  }}>
-                  {r.label}{visited.has(i) ? ' ✓' : ''}
-                </span>
+            <ol>
+              {REGIONS.map((region, index) => (
+                <li key={region.label} className={index === regionIndex ? 'active' : index < regionIndex ? 'visited' : ''}>
+                  <button onClick={() => setRegionIndex(index)} disabled={!started}>
+                    <span />
+                    {region.label}
+                  </button>
+                </li>
               ))}
-            </div>
-          )}
-
-          {/* Prep tips */}
-          <div className="space-y-2 mb-5">
-            {['找一个舒适坐姿，背部放松', '闭上眼睛或目光柔和向下', '遇到不适感只是观察，不评判'].map((tip, i) => (
-              <div key={i} className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--primary)' }} />
-                {tip}
-              </div>
-            ))}
+            </ol>
           </div>
-
-          {/* Controls */}
-          <div className="flex gap-3 flex-wrap">
-            {running ? (
-              <button onClick={stopScan}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium transition-all"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-                <Pause size={14} /> 停止
-              </button>
-            ) : (
-              <button onClick={startAuto}
-                className="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300"
-                style={{ background: 'linear-gradient(135deg, var(--primary), #3aa8d4)', color: '#04091a', boxShadow: '0 0 20px rgba(91,196,232,0.3)' }}>
-                <Play size={14} />
-                {autoCompleted ? '再次扫描' : '开始自动引导'}
-              </button>
-            )}
-          </div>
-
-          {/* Complete after 3 manual or auto finish */}
-          {canComplete && (
-            <button onClick={onComplete}
-              className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-medium mt-4 fade-in-up transition-all duration-300"
-              style={{ background: 'var(--primary-glow)', border: '1px solid var(--primary)', color: 'var(--primary)' }}>
-              <CheckCircle size={16} />
-              {autoCompleted ? '完美！继续下一课' : `已感知 ${visited.size} 个区域，继续`}
-              <ChevronRight size={16} />
-            </button>
-          )}
         </div>
-      </div>
+
+        {started && (
+          <div className="practice-controls">
+            <button className="round-control" onClick={() => setRunning(value => !value)} aria-label={running ? '暂停' : '继续'}>
+              {running ? <Pause size={20} /> : <Play size={20} />}
+            </button>
+            <button className={subtitles ? 'control-button active' : 'control-button'} onClick={() => setSubtitles(value => !value)}>
+              <Captions size={18} /> 字幕
+            </button>
+            <button className="control-button" onClick={skipRegion}>
+              <SkipForward size={18} /> 跳过这个部位
+            </button>
+            <button className="control-button danger" onClick={() => { setRunning(false); setFinished(true); }}>
+              <Square size={16} /> 结束练习
+            </button>
+          </div>
+        )}
+
+        <div className="practice-progress"><span style={{ width: `${progress}%` }} /></div>
+      </section>
     </div>
   );
 }

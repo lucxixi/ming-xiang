@@ -20,7 +20,9 @@ export function playBell(freq = 528, duration = 1.5, gain = 0.25) {
     g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
     osc.start(ac.currentTime);
     osc.stop(ac.currentTime + duration);
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export function playBreathIn() { playBell(396, 0.6, 0.12); }
@@ -46,7 +48,9 @@ export function playClick() {
     g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.12);
     osc.start(ac.currentTime);
     osc.stop(ac.currentTime + 0.15);
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export function playRelease() {
@@ -66,7 +70,9 @@ export function playRelease() {
         osc.stop(ac.currentTime + 1.0);
       }, i * 100);
     });
-  } catch {}
+  } catch {
+    return;
+  }
 }
 
 export function playScanTone(regionIndex: number) {
