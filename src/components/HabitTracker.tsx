@@ -45,7 +45,7 @@ export default function HabitTracker({ onComplete }: HabitTrackerProps) {
   };
 
   return (
-    <div className="practice-page free-practice-page">
+    <div className="practice-page free-practice-page habit-page">
       <section className="free-practice-shell habit-shell">
         <div className="free-practice-heading">
           <p className="eyebrow">只保存在这台设备</p>

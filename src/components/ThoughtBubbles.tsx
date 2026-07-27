@@ -40,7 +40,7 @@ export default function ThoughtBubbles({ onComplete }: ThoughtBubblesProps) {
   };
 
   return (
-    <div className="practice-page free-practice-page">
+    <div className="practice-page free-practice-page thought-page">
       <section className="free-practice-shell">
         <div className="free-practice-heading">
           <p className="eyebrow">自由练习 · 念头与事实之间</p>

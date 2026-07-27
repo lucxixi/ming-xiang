@@ -93,7 +93,7 @@ export default function BodyScan({ onComplete }: BodyScanProps) {
 
   return (
     <div className="practice-page body-practice">
-      <section className="practice-stage">
+      <section className="practice-stage body-stage">
         <div className="practice-title-row">
           <div>
             <p className="eyebrow">3 分钟 · 身体接触与感觉</p>
