@@ -21,8 +21,9 @@
 }
 
 * { box-sizing: border-box; }
+html, body, #root { width: 100%; height: 100%; overflow: hidden; }
 html { scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; min-height: 100vh; background: #f5f7f2; }
+body { margin: 0; min-width: 320px; background: #f5f7f2; }
 button, input { font: inherit; }
 button { color: inherit; }
 button:focus-visible, input:focus-visible {
@@ -30,7 +31,14 @@ button:focus-visible, input:focus-visible {
   outline-offset: 3px;
 }
 
-.app-shell { min-height: 100vh; background: #f5f7f2; }
+.app-shell {
+  height: 100svh;
+  display: grid;
+  grid-template-rows: 74px minmax(0, 1fr);
+  overflow: hidden;
+  background: #f5f7f2;
+}
+.app-shell main { min-height: 0; overflow: hidden; }
 .topbar {
   width: min(1240px, calc(100% - 48px));
   height: 74px;
@@ -99,16 +107,18 @@ button:focus-visible, input:focus-visible {
 
 .home, .practice-page {
   width: min(1240px, calc(100% - 48px));
+  height: 100%;
+  min-height: 0;
   margin: 0 auto;
 }
 .home {
-  min-height: calc(100svh - 74px);
   display: grid;
   align-items: center;
-  padding: 28px 0 42px;
+  padding: 28px 0;
 }
 .welcome-stage {
-  min-height: min(650px, calc(100svh - 138px));
+  height: 100%;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(350px, .85fr) minmax(520px, 1.35fr);
   overflow: hidden;
@@ -186,14 +196,14 @@ button:focus-visible, input:focus-visible {
 .secondary-action { color: var(--ink); background: rgba(255, 255, 255, .8); border-color: var(--line); }
 
 .practice-page {
-  min-height: calc(100svh - 74px);
   display: grid;
   align-items: center;
-  padding: 26px 0 38px;
+  padding: 28px 0;
 }
 .practice-stage, .free-practice-shell {
   position: relative;
-  min-height: min(650px, calc(100svh - 138px));
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, .9);
   background: white;
@@ -230,7 +240,8 @@ button:focus-visible, input:focus-visible {
   grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr);
   align-items: center;
   gap: 44px;
-  min-height: 475px;
+  height: calc(100% - 58px);
+  min-height: 0;
   padding-bottom: 42px;
 }
 .body-copy { max-width: 620px; }
@@ -422,11 +433,13 @@ button:focus-visible, input:focus-visible {
 .app-shell:has(.is-immersive) .topbar { display: none; }
 .is-immersive {
   width: 100%;
-  min-height: 100svh;
+  height: 100svh;
+  min-height: 0;
   padding: 0;
 }
 .is-immersive .practice-stage, .is-immersive .free-practice-shell {
-  min-height: 100svh;
+  height: 100svh;
+  min-height: 0;
   border: 0;
   box-shadow: none;
 }
@@ -438,7 +451,7 @@ button:focus-visible, input:focus-visible {
 }
 .is-immersive .practice-title-row .eyebrow { display: none; }
 .is-immersive .practice-title-row h1 { font-size: 18px; letter-spacing: 0; }
-.is-immersive .body-layout { min-height: calc(100svh - 10px); padding: 64px 4vw 90px; }
+.is-immersive .body-layout { height: 100%; min-height: 0; padding: 64px 4vw 90px; }
 .is-immersive .body-copy h2 { font-size: clamp(32px, 4.5vw, 62px); }
 .is-immersive .body-copy > p:last-of-type { display: none; }
 .is-immersive .body-map svg { height: min(56vh, 480px); }
@@ -675,12 +688,13 @@ button:focus-visible, input:focus-visible {
 }
 
 @media (max-width: 940px) {
+  .app-shell { grid-template-rows: 106px minmax(0, 1fr); }
   .topbar, .home, .practice-page { width: min(100% - 28px, 1240px); }
-  .topbar { height: auto; min-height: 92px; align-items: flex-start; flex-direction: column; gap: 4px; padding: 12px 0 9px; }
+  .topbar { height: 106px; min-height: 0; align-items: flex-start; flex-direction: column; gap: 4px; padding: 12px 0 9px; }
   .practice-nav { width: 100%; }
   .nav-item.active::after { bottom: -7px; }
-  .home, .practice-page { min-height: calc(100svh - 92px); }
-  .welcome-stage, .practice-stage, .free-practice-shell { min-height: min(620px, calc(100svh - 142px)); }
+  .home, .practice-page { height: 100%; min-height: 0; padding: 27px 0 8px; }
+  .welcome-stage, .practice-stage, .free-practice-shell { height: 100%; min-height: 0; }
   .welcome-stage { grid-template-columns: minmax(310px, .9fr) minmax(390px, 1.1fr); }
   .hero-copy { padding: 44px; }
   .body-layout { grid-template-columns: minmax(0, 1fr) 310px; gap: 10px; }
@@ -694,21 +708,26 @@ button:focus-visible, input:focus-visible {
 }
 
 @media (max-width: 680px) {
+  .app-shell { grid-template-rows: 104px minmax(0, 1fr); }
   .topbar, .home, .practice-page { width: min(100% - 20px, 1240px); }
+  .topbar { height: 104px; }
   .nav-item { padding: 8px 9px; }
   .nav-item svg { display: none; }
-  .home, .practice-page { height: auto; padding: 12px 0 24px; }
-  .welcome-stage { display: flex; min-height: calc(100svh - 124px); flex-direction: column-reverse; }
-  .hero-image { width: 100%; min-height: 42vh; background-position: 64% center; }
-  .hero-copy { padding: 30px 24px 34px; }
-  .welcome-statement { font-size: 39px; }
-  .welcome-actions { margin-top: 26px; }
-  .practice-stage, .free-practice-shell { min-height: calc(100svh - 126px); padding: 24px 20px; }
+  .home, .practice-page { height: 100%; min-height: 0; padding: 10px 0; }
+  .welcome-stage { height: 100%; min-height: 0; display: flex; flex-direction: column-reverse; }
+  .hero-image { width: 100%; min-height: 0; flex: 0 0 42%; background-position: 64% center; }
+  .hero-copy { min-height: 0; flex: 1; padding: 24px; }
+  .welcome-statement { font-size: clamp(30px, 10vw, 39px); }
+  .welcome-actions { margin-top: 22px; }
+  .practice-stage, .free-practice-shell { height: 100%; min-height: 0; padding: 20px; }
   .practice-title-row h1 { font-size: 29px; }
-  .body-layout { grid-template-columns: 1fr; padding: 36px 0 92px; }
-  .body-copy h2 { font-size: 29px; }
-  .body-map { grid-template-columns: minmax(150px, 1fr) 96px; }
-  .body-map svg { height: 300px; }
+  .body-layout { height: calc(100% - 56px); grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); gap: 8px; padding: 22px 0 78px; }
+  .body-copy h2 { font-size: clamp(24px, 7.5vw, 29px); }
+  .body-copy > p:last-of-type { margin-top: 8px; line-height: 1.55; }
+  .body-copy .primary-action { margin-top: 14px; }
+  .body-map { grid-template-columns: minmax(120px, 150px) 86px; justify-content: center; min-height: 0; }
+  .body-map svg { height: min(27vh, 220px); }
+  .body-map li button { padding: 4px 0; }
   .practice-controls { width: calc(100% - 28px); max-width: none; flex-wrap: wrap; }
   .control-button { padding: 8px; }
   .breathing-copy { right: 20px; bottom: 200px; left: 20px; }
@@ -716,14 +735,14 @@ button:focus-visible, input:focus-visible {
   .breathing-visual { width: 260px; }
   .anchor-switcher { bottom: 116px; }
   .breathing-stage .practice-controls { right: 14px; left: 14px; bottom: 24px; transform: none; }
-  .is-immersive .practice-stage, .is-immersive .free-practice-shell { min-height: 100svh; }
+  .is-immersive .practice-stage, .is-immersive .free-practice-shell { height: 100svh; min-height: 0; }
   .is-immersive .practice-title-row { top: 22px; right: 22px; left: 22px; }
-  .is-immersive .body-layout { padding: 82px 0 100px; }
+  .is-immersive .body-layout { height: 100%; padding: 72px 0 92px; }
   .is-immersive .body-copy h2 { font-size: 34px; }
   .is-immersive .body-map { opacity: .72; }
   .is-immersive .breathing-copy { bottom: 38%; }
-  .candle-shell, .thought-page .free-practice-shell { display: flex; flex-direction: column; padding: 0; }
-  .candle-scene { order: -1; width: 100%; min-height: 42vh; background-position: 70% center; }
+  .candle-shell, .thought-page .free-practice-shell { height: 100%; min-height: 0; display: flex; flex-direction: column; padding: 0; }
+  .candle-scene { order: -1; width: 100%; min-height: 0; flex: 0 0 42%; background-position: 70% center; }
   .candle-shell .free-practice-heading, .focus-setup { padding: 0 24px; }
   .candle-shell .free-practice-heading { margin-top: 26px; }
   .focus-setup { padding-bottom: 30px; }
@@ -734,13 +753,13 @@ button:focus-visible, input:focus-visible {
   .candle-page.is-immersive .return-button { z-index: 2; align-self: end; }
   .candle-page.is-immersive .practice-controls { right: 14px; left: 14px; }
   .thought-page .free-practice-heading { order: 1; padding: 26px 24px 0; }
-  .thought-sky { order: 0; width: 100%; min-height: 42vh; }
+  .thought-sky { order: 0; width: 100%; min-height: 0; flex: 0 0 40%; }
   .thought-input-row, .suggestion-row { order: 2; padding: 0 24px; }
   .thought-page .free-footer-actions { order: 3; margin: 0 24px 24px; }
-  .habit-shell { display: block; padding: 28px 22px; background-position: center; }
-  .habit-summary { margin: 22px 0; }
-  .habit-calendar { margin: 18px 0; gap: 5px; }
-  .habit-calendar div { height: 40px; }
+  .habit-shell { display: block; height: 100%; min-height: 0; padding: 22px; background-position: center; }
+  .habit-summary { margin: 12px 0; }
+  .habit-calendar { margin: 12px 0; gap: 5px; }
+  .habit-calendar div { height: min(5vh, 38px); }
   .habit-reassurance { margin-top: 8px; }
   .habit-shell .free-footer-actions { margin-top: 22px; }
   .feedback-options { grid-template-columns: 1fr; }
@@ -748,10 +767,11 @@ button:focus-visible, input:focus-visible {
 }
 
 @media (max-height: 700px) and (min-width: 681px) {
-  .practice-stage, .free-practice-shell { min-height: 520px; }
-  .body-layout { min-height: 390px; }
-  .body-map svg { height: 300px; }
-  .is-immersive .practice-stage, .is-immersive .free-practice-shell { min-height: 100svh; }
+  .home, .practice-page { padding-top: 12px; padding-bottom: 12px; }
+  .practice-stage, .free-practice-shell { height: 100%; min-height: 0; }
+  .body-layout { height: calc(100% - 50px); min-height: 0; }
+  .body-map svg { height: min(45vh, 290px); }
+  .is-immersive .practice-stage, .is-immersive .free-practice-shell { height: 100svh; min-height: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
