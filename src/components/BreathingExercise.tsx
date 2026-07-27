@@ -81,7 +81,7 @@ export default function BreathingExercise({ onComplete }: BreathingExerciseProps
   const progress = ((TOTAL_SECONDS - remaining) / TOTAL_SECONDS) * 100;
 
   return (
-    <div className="practice-page breathing-practice">
+    <div className={started ? 'practice-page breathing-practice is-immersive' : 'practice-page breathing-practice'}>
       <section className="practice-stage breathing-stage">
         <div className="practice-title-row breathing-title">
           <div>

@@ -51,18 +51,15 @@ export default function FocusExercise({ onComplete }: FocusExerciseProps) {
   };
 
   return (
-    <div className="practice-page free-practice-page candle-page">
+    <div className={started ? 'practice-page free-practice-page candle-page is-immersive' : 'practice-page free-practice-page candle-page'}>
       <section className="free-practice-shell candle-shell">
         <div className="free-practice-heading">
-          <p className="eyebrow">自由练习 · 视觉锚点</p>
+          <p className="eyebrow">自由练习 · 1—5 分钟</p>
           <h1>烛火专注</h1>
-          <p>让视线停在火焰附近。注意跑开时，按一次“注意到了”，然后决定是否回来。</p>
+          <p>视线轻轻停在火焰附近。走神时，知道就好。</p>
         </div>
 
         <div className="candle-scene">
-          <div className="candle-aura" />
-          <div className="flame"><span /></div>
-          <div className="candle-body" />
           {started && <time>{formatTime(remaining)}</time>}
         </div>
 

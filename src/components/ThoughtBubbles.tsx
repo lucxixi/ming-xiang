@@ -43,9 +43,9 @@ export default function ThoughtBubbles({ onComplete }: ThoughtBubblesProps) {
     <div className="practice-page free-practice-page thought-page">
       <section className="free-practice-shell">
         <div className="free-practice-heading">
-          <p className="eyebrow">自由练习 · 念头与事实之间</p>
+          <p className="eyebrow">自由练习</p>
           <h1>念头云朵</h1>
-          <p>写下一句此刻黏住你的话。让它暂时成为眼前的一句话，而不是必须服从的命令。</p>
+          <p>写下来，再点它放走。</p>
         </div>
 
         <div className="thought-sky">
@@ -53,7 +53,7 @@ export default function ThoughtBubbles({ onComplete }: ThoughtBubblesProps) {
           {thoughts.length === 0 && (
             <div className="thought-empty">
               <Cloud size={27} />
-              <span>念头出现时，可以先看看它。</span>
+              <span>念头出现时，先看看它。</span>
             </div>
           )}
           {thoughts.map(thought => (

@@ -1,5 +1,4 @@
 import { ArrowRight, Waves } from 'lucide-react';
-import type { CSSProperties } from 'react';
 
 export type PracticeId = 'home' | 'body' | 'breathing' | 'candle' | 'thoughts' | 'habit';
 
@@ -8,29 +7,11 @@ interface HomeProps {
 }
 
 export default function Home({ onSelect }: HomeProps) {
-  const petals = Array.from({ length: 8 }, (_, index) => index * 45);
-
   return (
-    <div className="home compact-home">
+    <div className="home">
       <section className="welcome-stage">
-        <div className="hero-orb hero-orb-one" aria-hidden="true" />
-        <div className="hero-orb hero-orb-two" aria-hidden="true" />
-
         <div className="hero-copy">
-          <div className="lotus-bloom" aria-hidden="true">
-            {petals.map((rotation, index) => (
-              <span
-                key={rotation}
-                className="lotus-petal"
-                style={{
-                  '--rotation': `${rotation}deg`,
-                  '--delay': `${index * 0.1}s`,
-                } as CSSProperties}
-              />
-            ))}
-            <span className="lotus-heart"><i /></span>
-          </div>
-
+          <p className="eyebrow">Inner Space · 入门练习</p>
           <h1 className="welcome-statement">给第一次冥想的三分钟</h1>
           <div className="welcome-actions">
             <button className="primary-action large" onClick={() => onSelect('body')}>
@@ -44,6 +25,7 @@ export default function Home({ onSelect }: HomeProps) {
           </div>
           <p className="welcome-safety">随时可以睁眼、暂停或结束</p>
         </div>
+        <div className="hero-image" role="img" aria-label="雨后窗边的新绿" />
       </section>
     </div>
   );

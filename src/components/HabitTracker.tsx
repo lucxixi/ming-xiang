@@ -50,7 +50,7 @@ export default function HabitTracker({ onComplete }: HabitTrackerProps) {
         <div className="free-practice-heading">
           <p className="eyebrow">只保存在这台设备</p>
           <h1>练习记录</h1>
-          <p>它只是帮你记住哪些日子练过，不计算连续天数，也不评价练习质量。</p>
+          <p>只记录，不计算连续天数。</p>
         </div>
 
         <div className="habit-summary">

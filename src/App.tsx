@@ -36,9 +36,6 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <div className="ambient-leaf ambient-leaf-one" />
-      <div className="ambient-leaf ambient-leaf-two" />
-
       <header className="topbar">
         <button className="brand" onClick={goHome} aria-label="返回 Inner Space 首页">
           <span className="brand-mark"><Leaf size={17} /></span>

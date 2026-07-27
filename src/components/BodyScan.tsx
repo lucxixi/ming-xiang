@@ -92,7 +92,7 @@ export default function BodyScan({ onComplete }: BodyScanProps) {
   }
 
   return (
-    <div className="practice-page body-practice">
+    <div className={started ? 'practice-page body-practice is-immersive' : 'practice-page body-practice'}>
       <section className="practice-stage body-stage">
         <div className="practice-title-row">
           <div>
