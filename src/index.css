@@ -128,19 +128,51 @@ button:focus-visible, input:focus-visible {
 .home, .practice-page { width: min(1180px, calc(100% - 48px)); margin: 0 auto; position: relative; z-index: 2; }
 .compact-home { min-height: calc(100vh - 76px); display: grid; align-items: center; padding: 28px 0 44px; }
 .welcome-stage {
+  position: relative;
   min-height: min(590px, calc(100vh - 148px));
-  display: grid;
-  grid-template-columns: 1.15fr .85fr;
+  display: flex;
   align-items: center;
-  gap: 44px;
+  justify-content: center;
   padding: 54px 7%;
   border: 1px solid rgba(255,255,255,.8);
   border-radius: 34px;
   background:
-    linear-gradient(112deg, rgba(255,255,255,.92), rgba(244,249,239,.66)),
-    radial-gradient(circle at 85% 20%, rgba(155, 210, 116, .3), transparent 45%);
+    linear-gradient(155deg, rgba(255,255,255,.82), rgba(226,242,232,.62)),
+    #edf5ed;
   box-shadow: var(--shadow);
   overflow: hidden;
+}
+.welcome-stage::before,
+.welcome-stage::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+.welcome-stage::before {
+  width: 115%;
+  height: 145%;
+  left: -8%;
+  top: -28%;
+  background:
+    radial-gradient(ellipse at 22% 30%, rgba(255,255,255,.94) 0 13%, transparent 35%),
+    radial-gradient(ellipse at 78% 68%, rgba(125,190,156,.22) 0 12%, transparent 36%),
+    radial-gradient(ellipse at 55% 18%, rgba(206,229,150,.3) 0 8%, transparent 30%);
+  filter: blur(15px);
+  animation: ambientWater 16s ease-in-out infinite alternate;
+}
+.welcome-stage::after {
+  inset: 0;
+  opacity: .3;
+  background:
+    repeating-radial-gradient(ellipse at 50% 115%, transparent 0 42px, rgba(255,255,255,.42) 43px 44px, transparent 45px 80px);
+  mask-image: linear-gradient(to top, black, transparent 72%);
+  animation: waterLines 12s ease-in-out infinite alternate;
+}
+.welcome-stage .hero-copy {
+  position: relative;
+  z-index: 2;
+  width: min(650px, 100%);
+  text-align: center;
 }
 .eyebrow {
   margin: 0 0 13px;
@@ -150,18 +182,17 @@ button:focus-visible, input:focus-visible {
   letter-spacing: .14em;
   text-transform: uppercase;
 }
-.hero-copy h1 {
-  margin: 0 0 22px;
+.welcome-statement {
+  margin: 0;
   font-family: 'Noto Serif SC', serif;
-  font-size: clamp(42px, 6vw, 76px);
-  line-height: 1.08;
-  letter-spacing: -.045em;
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1.25;
+  letter-spacing: -.035em;
 }
-.hero-lead { max-width: 590px; font-size: 17px; line-height: 1.9; color: var(--muted); }
-.welcome-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 18px; margin-top: 25px; }
+.welcome-actions { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 18px; margin-top: 34px; }
 .welcome-actions .primary-action.large { margin-top: 0; }
 .text-action { display: inline-flex; align-items: center; gap: 7px; padding: 10px 0; border: 0; background: transparent; color: var(--leaf-dark); font-weight: 600; font-size: 13px; cursor: pointer; }
-.welcome-safety { max-width: 570px; margin: 24px 0 0; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 11px; line-height: 1.7; }
+.welcome-safety { margin: 24px 0 0; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
 .water-signature { min-height: 310px; position: relative; display: grid; place-items: center; }
 .water-signature::after {
   content: '';
@@ -429,6 +460,14 @@ button:focus-visible, input:focus-visible {
   18% { opacity: 1; }
   100% { transform: scale(1.15); opacity: 0; }
 }
+@keyframes ambientWater {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to { transform: translate3d(3%, 2%, 0) scale(1.08); }
+}
+@keyframes waterLines {
+  from { transform: translateY(8px) scaleX(.96); }
+  to { transform: translateY(-8px) scaleX(1.04); }
+}
 @keyframes breatheRipple {
   0% { inset: 50%; opacity: 0; }
   18% { opacity: .9; }
@@ -453,8 +492,7 @@ button:focus-visible, input:focus-visible {
   .practice-nav { width: 100%; padding-bottom: 3px; }
   .nav-item.active::after { bottom: -8px; }
   .compact-home { min-height: calc(100vh - 118px); }
-  .welcome-stage { min-height: calc(100vh - 160px); grid-template-columns: 1fr; padding: 42px 26px; }
-  .water-signature { min-height: 220px; }
+  .welcome-stage { min-height: calc(100vh - 160px); padding: 42px 26px; }
   .primary-grid, .supporting-grid { grid-template-columns: 1fr; }
   .section-heading { align-items: start; flex-direction: column; }
   .section-heading > p { text-align: left; }
@@ -471,7 +509,7 @@ button:focus-visible, input:focus-visible {
 @media (max-width: 560px) {
   .nav-item { padding: 9px 10px; }
   .welcome-stage { min-height: auto; }
-  .hero-copy h1 { font-size: 42px; }
+  .welcome-statement { font-size: 34px; }
   .primary-practices, .supporting-section { padding-left: 0; padding-right: 0; }
   .practice-card { min-height: 310px; }
   .body-map { grid-template-columns: 180px 110px; }
