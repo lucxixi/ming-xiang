@@ -430,6 +430,9 @@ button:focus-visible, input:focus-visible {
 .anchor-switcher button.active { color: var(--leaf-dark); background: rgba(255, 255, 255, .88); }
 .breathing-stage .practice-controls { left: auto; right: 30px; bottom: 24px; transform: none; }
 
+.app-shell:has(.is-immersive) {
+  grid-template-rows: minmax(0, 1fr);
+}
 .app-shell:has(.is-immersive) .topbar { display: none; }
 .is-immersive {
   width: 100%;
@@ -523,9 +526,26 @@ button:focus-visible, input:focus-visible {
   cursor: pointer;
 }
 .return-button span { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
-.candle-page.is-immersive .candle-shell { grid-template-columns: minmax(350px, .72fr) minmax(550px, 1.28fr); }
-.candle-page.is-immersive .free-practice-heading { padding-top: 18vh; }
-.candle-page.is-immersive .practice-controls { left: calc(32% / 2); }
+.candle-page.is-immersive .candle-shell { grid-template-columns: minmax(320px, .72fr) minmax(0, 1.28fr); }
+.candle-page.is-immersive .free-practice-heading {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+  width: 250px;
+  padding: 0;
+}
+.candle-page.is-immersive .return-button {
+  position: absolute;
+  z-index: 5;
+  bottom: 104px;
+  left: 40px;
+  margin: 0;
+}
+.candle-page.is-immersive .practice-controls {
+  right: auto;
+  left: 40px;
+  transform: none;
+}
 
 .thought-page .free-practice-shell {
   display: grid;
@@ -772,6 +792,12 @@ button:focus-visible, input:focus-visible {
   .body-layout { height: calc(100% - 50px); min-height: 0; }
   .body-map svg { height: min(45vh, 290px); }
   .is-immersive .practice-stage, .is-immersive .free-practice-shell { height: 100svh; min-height: 0; }
+}
+
+.practice-page.is-immersive {
+  width: 100%;
+  height: 100svh;
+  padding: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
