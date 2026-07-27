@@ -1,154 +1,220 @@
-import { Captions, Ear, Eye, Pause, Play, Square, Waves } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { playChime } from '../utils/audio';
+import { ArrowLeft, Pause, Play, Sparkles, Waves } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { playBreathIn, playBreathOut, playChime, playClick } from '../utils/audio';
+import { activeCaptionAt, parseSrt, type CaptionCue } from '../utils/subtitles';
 import PracticeComplete from './PracticeComplete';
 
 interface BreathingExerciseProps {
   onComplete: () => void;
 }
 
-type Anchor = 'breath' | 'sound' | 'view';
+type BreathingMode = 'choice' | 'guided' | 'four-four';
+type BreathPhase = 'inhale' | 'exhale';
 
-const TOTAL_SECONDS = 180;
-
-const anchors: Record<Anchor, { label: string; icon: typeof Waves; title: string; copy: string }> = {
-  breath: {
-    label: '自然呼吸',
-    icon: Waves,
-    title: '不用调整，只留意这一口气正在离开。',
-    copy: '呼吸保持原来的样子就好。动画只是环境的一部分，不需要跟随。',
-  },
-  sound: {
-    label: '周围声音',
-    icon: Ear,
-    title: '把注意力交给此刻真实存在的声音。',
-    copy: '近处或远处都可以。不需要分辨来源，只知道声音正在出现。',
-  },
-  view: {
-    label: '眼前画面',
-    icon: Eye,
-    title: '睁开眼睛，看向一个具体、稳定的东西。',
-    copy: '留意它的颜色、边缘和所在位置，让自己重新接触周围空间。',
-  },
-};
+const GUIDED_AUDIO_SRC = '/audio/guided-breathing.mp3';
+const GUIDED_SUBTITLE_SRC = '/audio/guided-breathing.srt';
+const GUIDED_FALLBACK_DURATION = 732.891;
+const PHASE_DURATION = 4000;
 
 function formatTime(value: number) {
-  return `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`;
+  const safeValue = Math.max(0, Math.round(value));
+  return `${Math.floor(safeValue / 60)}:${String(safeValue % 60).padStart(2, '0')}`;
+}
+
+function GuidedBreathing({ onBack, onFinish }: { onBack: () => void; onFinish: () => void }) {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const [duration, setDuration] = useState(GUIDED_FALLBACK_DURATION);
+  const [running, setRunning] = useState(false);
+  const [cues, setCues] = useState<CaptionCue[]>([]);
+
+  useEffect(() => {
+    fetch(GUIDED_SUBTITLE_SRC)
+      .then(response => response.text())
+      .then(source => setCues(parseSrt(source)))
+      .catch(() => setCues([]));
+  }, []);
+
+  const caption = useMemo(() => activeCaptionAt(cues, elapsed), [cues, elapsed]);
+
+  const togglePlayback = async () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    playClick();
+    if (audio.paused) {
+      try {
+        await audio.play();
+      } catch {
+        setRunning(false);
+      }
+    } else {
+      audio.pause();
+    }
+  };
+
+  return (
+    <section className="guided-breathing-stage">
+      <div className="breathing-lake-wash" aria-hidden="true" />
+
+      <button className="mode-back" onClick={onBack}>
+        <ArrowLeft size={16} />
+        选择呼吸方式
+      </button>
+
+      <button
+        className={running ? 'countdown-bubble breathing-countdown is-running' : 'countdown-bubble breathing-countdown'}
+        onClick={togglePlayback}
+        aria-label={running ? '暂停引导呼吸' : '播放引导呼吸'}
+      >
+        <span className="countdown-icon" aria-hidden="true">
+          {running ? <Pause size={17} /> : <Play size={17} />}
+        </span>
+        <time>{formatTime(duration - elapsed)}</time>
+      </button>
+
+      <div className={caption ? 'guided-breathing-caption' : 'guided-breathing-caption is-empty'} aria-live="polite">
+        {caption && <h1>{caption}</h1>}
+      </div>
+
+      <audio
+        ref={audioRef}
+        src={GUIDED_AUDIO_SRC}
+        preload="metadata"
+        onLoadedMetadata={event => setDuration(event.currentTarget.duration)}
+        onTimeUpdate={event => setElapsed(event.currentTarget.currentTime)}
+        onPlay={() => setRunning(true)}
+        onPause={() => setRunning(false)}
+        onEnded={() => {
+          setRunning(false);
+          playChime();
+          onFinish();
+        }}
+      />
+    </section>
+  );
+}
+
+function FourFourBreathing({ onBack }: { onBack: () => void }) {
+  const [running, setRunning] = useState(false);
+  const [phase, setPhase] = useState<BreathPhase>('inhale');
+  const [phaseElapsed, setPhaseElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!running) return;
+
+    const timer = window.setInterval(() => {
+      setPhaseElapsed(value => {
+        const next = value + 50;
+        if (next < PHASE_DURATION) return next;
+
+        setPhase(current => {
+          const nextPhase = current === 'inhale' ? 'exhale' : 'inhale';
+          if (nextPhase === 'inhale') playBreathIn();
+          else playBreathOut();
+          return nextPhase;
+        });
+        return next - PHASE_DURATION;
+      });
+    }, 50);
+
+    return () => window.clearInterval(timer);
+  }, [running]);
+
+  const progress = phaseElapsed / PHASE_DURATION;
+  const scale = phase === 'inhale'
+    ? 0.72 + progress * 0.28
+    : 1 - progress * 0.28;
+  const seconds = Math.max(1, Math.ceil((PHASE_DURATION - phaseElapsed) / 1000));
+
+  const toggle = () => {
+    setRunning(value => {
+      const next = !value;
+      if (next) {
+        if (phase === 'inhale') playBreathIn();
+        else playBreathOut();
+      }
+      return next;
+    });
+  };
+
+  return (
+    <section className="four-four-stage">
+      <div className="breathing-lake-wash four-four-wash" aria-hidden="true" />
+
+      <button className="mode-back" onClick={onBack}>
+        <ArrowLeft size={16} />
+        选择呼吸方式
+      </button>
+
+      <button
+        className={running ? `four-four-orb is-running is-${phase}` : `four-four-orb is-${phase}`}
+        onClick={toggle}
+        aria-label={running ? '暂停四四呼吸' : '开始四四呼吸'}
+        style={{ '--breath-scale': scale } as CSSProperties}
+      >
+        <span className="orb-ring ring-a" aria-hidden="true" />
+        <span className="orb-ring ring-b" aria-hidden="true" />
+        <span className="orb-core" aria-hidden="true" />
+        <span className="orb-copy">
+          <small>{running ? (phase === 'inhale' ? '吸气' : '呼气') : '四四呼吸'}</small>
+          <strong>{running ? seconds : <Play size={27} />}</strong>
+        </span>
+      </button>
+
+      <p className="four-four-note">
+        {running ? '跟随圆环，不需要吸得更深。' : '4 秒吸气 · 4 秒呼气'}
+      </p>
+    </section>
+  );
 }
 
 export default function BreathingExercise({ onComplete }: BreathingExerciseProps) {
-  const [started, setStarted] = useState(false);
-  const [running, setRunning] = useState(false);
-  const [remaining, setRemaining] = useState(TOTAL_SECONDS);
-  const [anchor, setAnchor] = useState<Anchor>('breath');
-  const [subtitles, setSubtitles] = useState(true);
+  const [mode, setMode] = useState<BreathingMode>('choice');
   const [finished, setFinished] = useState(false);
-
-  useEffect(() => {
-    if (!running || finished) return;
-    const timer = window.setInterval(() => {
-      setRemaining(value => {
-        if (value <= 1) {
-          window.clearInterval(timer);
-          setRunning(false);
-          setFinished(true);
-          playChime();
-          return 0;
-        }
-        return value - 1;
-      });
-    }, 1000);
-    return () => window.clearInterval(timer);
-  }, [running, finished]);
-
-  const restart = () => {
-    setStarted(false);
-    setRunning(false);
-    setRemaining(TOTAL_SECONDS);
-    setFinished(false);
-    setAnchor('breath');
-  };
 
   if (finished) {
     return (
       <div className="practice-page completion-page">
-        <PracticeComplete onLeave={onComplete} onAgain={restart} />
+        <PracticeComplete
+          onLeave={onComplete}
+          onAgain={() => {
+            setFinished(false);
+            setMode('guided');
+          }}
+        />
       </div>
     );
   }
 
-  const current = anchors[anchor];
-  const progress = ((TOTAL_SECONDS - remaining) / TOTAL_SECONDS) * 100;
-
   return (
-    <div className={started ? 'practice-page breathing-practice is-immersive' : 'practice-page breathing-practice'}>
-      <section className="practice-stage breathing-stage">
-        <div className="practice-title-row breathing-title">
-          <div>
-            <p className="eyebrow">3 分钟 · 可随时更换注意位置</p>
-            <h1>自然呼吸</h1>
+    <div className="practice-page breathing-practice">
+      {mode === 'choice' && (
+        <section className="breathing-choice-stage">
+          <div className="breathing-lake-wash choice-wash" aria-hidden="true" />
+          <div className="breathing-choice-content">
+            <h1>选择一种呼吸</h1>
+            <div className="breathing-mode-options">
+              <button onClick={() => setMode('guided')}>
+                <span className="mode-icon"><Waves size={22} /></span>
+                <strong>引导呼吸</strong>
+                <small>旁白与字幕 · 12 分钟</small>
+              </button>
+              <button onClick={() => setMode('four-four')}>
+                <span className="mode-icon"><Sparkles size={22} /></span>
+                <strong>四四呼吸法</strong>
+                <small>4 秒吸气 · 4 秒呼气</small>
+              </button>
+            </div>
           </div>
-          <time>{formatTime(remaining)}</time>
-        </div>
+        </section>
+      )}
 
-        <div className="breathing-visual" aria-hidden="true">
-          <span className="breath-ring ring-one" />
-          <span className="breath-ring ring-two" />
-          <span className="breath-ring ring-three" />
-          <span className="breath-glint" />
-        </div>
+      {mode === 'guided' && (
+        <GuidedBreathing onBack={() => setMode('choice')} onFinish={() => setFinished(true)} />
+      )}
 
-        <div className="breathing-copy">
-          {!started ? (
-            <>
-              <p className="practice-kicker">跟随你的自然节奏</p>
-              <h2>不要求深呼吸，也不需要屏息。</h2>
-              <p>只是留意呼吸原本的样子。感到紧迫、头晕或不舒服时，可以换到声音或直接结束。</p>
-              <button className="primary-action large" onClick={() => { setStarted(true); setRunning(true); }}>
-                <Play size={18} />
-                开始自然呼吸
-              </button>
-            </>
-          ) : (
-            <>
-              <p className="practice-kicker">{current.label}</p>
-              <h2>{subtitles ? current.title : '在这里停留一会儿。'}</h2>
-              <p>{current.copy}</p>
-            </>
-          )}
-        </div>
-
-        {started && (
-          <>
-            <div className="anchor-switcher" aria-label="切换注意位置">
-              {(Object.keys(anchors) as Anchor[]).map(key => {
-                const option = anchors[key];
-                const Icon = option.icon;
-                return (
-                  <button key={key} className={anchor === key ? 'active' : ''} onClick={() => setAnchor(key)}>
-                    <Icon size={17} />
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="practice-controls floating">
-              <button className="round-control" onClick={() => setRunning(value => !value)} aria-label={running ? '暂停' : '继续'}>
-                {running ? <Pause size={20} /> : <Play size={20} />}
-              </button>
-              <button className={subtitles ? 'control-button active' : 'control-button'} onClick={() => setSubtitles(value => !value)}>
-                <Captions size={18} /> 字幕
-              </button>
-              <button className="control-button danger" onClick={() => { setRunning(false); setFinished(true); }}>
-                <Square size={16} /> 结束练习
-              </button>
-            </div>
-          </>
-        )}
-
-        <div className="practice-progress"><span style={{ width: `${progress}%` }} /></div>
-      </section>
+      {mode === 'four-four' && <FourFourBreathing onBack={() => setMode('choice')} />}
     </div>
   );
 }

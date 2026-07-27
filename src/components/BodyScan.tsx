@@ -1,45 +1,16 @@
 import { Pause, Play } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { playChime, playClick } from '../utils/audio';
+import { activeCaptionAt, parseSrt, type CaptionCue } from '../utils/subtitles';
 import PracticeComplete from './PracticeComplete';
 
 interface BodyScanProps {
   onComplete: () => void;
 }
 
-interface CaptionCue {
-  start: number;
-  end: number;
-  text: string;
-}
-
 const AUDIO_SRC = '/audio/body-scan.mp3';
 const SUBTITLE_SRC = '/audio/body-scan.srt';
 const FALLBACK_DURATION = 574.224;
-
-function parseTimestamp(value: string) {
-  const [hours, minutes, seconds] = value.replace(',', '.').split(':');
-  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds);
-}
-
-function parseSrt(source: string): CaptionCue[] {
-  return source
-    .trim()
-    .split(/\r?\n\r?\n/)
-    .map(block => {
-      const lines = block.split(/\r?\n/);
-      const timingIndex = lines.findIndex(line => line.includes('-->'));
-      if (timingIndex === -1) return null;
-
-      const [start, end] = lines[timingIndex].split('-->').map(value => value.trim());
-      return {
-        start: parseTimestamp(start),
-        end: parseTimestamp(end),
-        text: lines.slice(timingIndex + 1).join(' ').trim(),
-      };
-    })
-    .filter((cue): cue is CaptionCue => Boolean(cue?.text));
-}
 
 function formatTime(value: number) {
   const safeValue = Math.max(0, Math.round(value));
@@ -62,9 +33,7 @@ export default function BodyScan({ onComplete }: BodyScanProps) {
   }, []);
 
   const activeCaption = useMemo(() => {
-    if (cues.length === 0) return '';
-    if (elapsed < cues[0].start) return cues[0].text;
-    return cues.find(cue => elapsed >= cue.start && elapsed <= cue.end)?.text ?? '';
+    return activeCaptionAt(cues, elapsed);
   }, [cues, elapsed]);
 
   const restart = () => {
