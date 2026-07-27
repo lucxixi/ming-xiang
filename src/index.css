@@ -751,75 +751,167 @@ button:focus-visible, input:focus-visible {
 .guided-timeline > div span { text-align: center; }
 .guided-timeline > div time:last-child { text-align: right; }
 
-.thought-page .free-practice-shell {
-  display: grid;
-  grid-template-columns: minmax(300px, .72fr) minmax(500px, 1.28fr);
-  grid-template-rows: auto auto auto auto;
-  gap: 13px 40px;
-  padding: 0;
-}
-.thought-page .free-practice-heading {
-  grid-row: 1;
-  align-self: end;
-  padding: 56px 0 0 56px;
-}
-.thought-sky {
+.thought-stage {
   position: relative;
-  grid-column: 2;
-  grid-row: 1 / 5;
-  min-height: 100%;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .9);
   background: url('/assets/after-rain-sky.jpg') center / cover no-repeat;
+  box-shadow: 0 24px 70px rgba(49, 78, 61, .08);
 }
-.sky-light { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(248, 251, 248, .26)); }
-.thought-empty {
+.sky-light {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-content: center;
-  justify-items: center;
-  gap: 10px;
-  color: rgba(21, 63, 53, .5);
+  background:
+    linear-gradient(180deg, rgba(240, 247, 249, .04) 30%, rgba(236, 246, 241, .34) 100%),
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, .12), transparent 54%);
+}
+.thought-heading {
+  position: absolute;
+  z-index: 6;
+  top: clamp(28px, 5vw, 52px);
+  left: clamp(30px, 5vw, 58px);
+}
+.thought-heading h1 {
+  margin: 0;
+  font: 600 clamp(30px, 4vw, 46px)/1.2 var(--serif);
+  letter-spacing: -.04em;
+}
+.thought-heading p {
+  margin: 8px 0 0;
+  color: rgba(21, 63, 53, .66);
+  font-size: 11px;
+}
+.thought-actions {
+  position: absolute;
+  z-index: 7;
+  top: clamp(28px, 5vw, 52px);
+  right: clamp(30px, 5vw, 58px);
+  display: flex;
+  gap: 6px;
+}
+.thought-actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 255, 255, .6);
+  border-radius: 999px;
+  color: rgba(21, 63, 53, .72);
+  background: rgba(247, 251, 249, .5);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+.thought-empty {
+  position: absolute;
+  z-index: 2;
+  top: 45%;
+  right: 0;
+  left: 0;
+  margin: 0;
+  color: rgba(21, 63, 53, .46);
+  text-align: center;
   font-size: 12px;
 }
+.thought-cloud-layer { position: absolute; z-index: 4; inset: 0; overflow: hidden; pointer-events: none; }
 .thought-cloud {
+  --cloud-left: 20%;
+  --cloud-duration: 22s;
+  --cloud-scale: 1;
   position: absolute;
-  bottom: 18px;
-  max-width: 230px;
-  padding: 12px 18px;
-  border: 1px solid rgba(255, 255, 255, .84);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, .76);
-  box-shadow: 0 10px 28px rgba(42, 69, 57, .12);
-  backdrop-filter: blur(12px);
+  bottom: 92px;
+  left: var(--cloud-left);
+  min-width: 170px;
+  max-width: 270px;
+  min-height: 64px;
+  padding: 20px 28px 15px;
+  border: 0;
+  border-radius: 48% 52% 46% 54% / 58% 56% 44% 42%;
+  background: rgba(255, 255, 255, .86);
+  box-shadow:
+    0 14px 30px rgba(62, 93, 111, .12),
+    inset 0 -10px 22px rgba(207, 225, 232, .16);
+  color: #315b5d;
   font-size: 12px;
   cursor: pointer;
-  animation: cloudRise 12s linear infinite;
+  pointer-events: auto;
+  filter: drop-shadow(0 8px 18px rgba(64, 91, 105, .08));
+  isolation: isolate;
+  animation: cloudDrift var(--cloud-duration) linear forwards;
 }
-.thought-cloud.released { opacity: 0; transform: translateY(-90px) scale(.9); transition: 1.8s ease; animation: none; }
-.thought-input-row {
-  grid-column: 1;
-  display: grid;
-  gap: 10px;
-  padding-left: 56px;
+.thought-cloud::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: -27px;
+  left: 24px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .86);
+  box-shadow:
+    54px 10px 0 -7px rgba(255, 255, 255, .86),
+    98px 23px 0 -17px rgba(255, 255, 255, .86);
 }
-.thought-input-row label { display: grid; gap: 7px; color: var(--muted); font-size: 11px; }
-.thought-input-row input {
+.thought-cloud span { position: relative; z-index: 2; }
+.thought-cloud.released { animation: cloudRelease .9s ease forwards; }
+.thought-composer {
+  position: absolute;
+  z-index: 8;
+  right: 50%;
+  bottom: clamp(22px, 4vh, 36px);
+  width: min(630px, calc(100% - 64px));
+  transform: translateX(50%);
+}
+.thought-entry {
   width: 100%;
-  padding: 12px 13px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: white;
-}
-.thought-input-row .primary-action { justify-self: start; }
-.suggestion-row { grid-column: 1; display: flex; flex-wrap: wrap; gap: 6px; padding-left: 56px; }
-.suggestion-row button {
-  padding: 6px 9px;
-  border: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: 1fr 48px;
+  align-items: center;
+  padding: 6px 7px 6px 18px;
+  border: 1px solid rgba(255, 255, 255, .78);
   border-radius: 999px;
+  background: rgba(249, 252, 251, .78);
+  box-shadow: 0 16px 42px rgba(42, 75, 82, .16);
+  backdrop-filter: blur(18px);
+}
+.thought-entry input {
+  min-width: 0;
+  padding: 10px 0;
+  border: 0;
+  outline: 0;
   background: transparent;
-  color: var(--muted);
+  color: var(--ink);
+}
+.thought-entry input::placeholder { color: rgba(21, 63, 53, .48); }
+.thought-entry > button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: white;
+  background: var(--leaf);
+  cursor: pointer;
+}
+.thought-entry > button:disabled { opacity: .35; cursor: default; }
+.thought-suggestions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 9px;
+}
+.thought-suggestions button {
+  padding: 6px 9px;
+  border: 1px solid rgba(255, 255, 255, .54);
+  border-radius: 999px;
+  background: rgba(246, 251, 249, .42);
+  color: rgba(21, 63, 53, .62);
   font-size: 10px;
+  backdrop-filter: blur(10px);
   cursor: pointer;
 }
 .free-footer-actions {
@@ -829,7 +921,6 @@ button:focus-visible, input:focus-visible {
   padding-top: 12px;
   border-top: 1px solid var(--line);
 }
-.thought-page .free-footer-actions { grid-column: 1; margin: 0 0 48px 56px; }
 
 .habit-shell {
   display: grid;
@@ -902,9 +993,15 @@ button:focus-visible, input:focus-visible {
   18% { opacity: .92; }
   100% { inset: 0; opacity: 0; }
 }
-@keyframes cloudRise {
-  from { transform: translateY(0); }
-  to { transform: translateY(-440px); }
+@keyframes cloudDrift {
+  0% { opacity: 0; transform: translate(-8px, 26px) scale(calc(var(--cloud-scale) * .94)); }
+  8% { opacity: 1; }
+  74% { opacity: .92; }
+  100% { opacity: 0; transform: translate(40px, -620px) scale(var(--cloud-scale)); }
+}
+@keyframes cloudRelease {
+  0% { opacity: 1; transform: scale(var(--cloud-scale)); filter: blur(0); }
+  100% { opacity: 0; transform: translateY(-48px) scale(calc(var(--cloud-scale) * 1.16)); filter: blur(8px); }
 }
 @keyframes imageBreathe {
   from { background-size: 100% auto; }

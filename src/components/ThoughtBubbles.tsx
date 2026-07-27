@@ -1,4 +1,5 @@
-import { Cloud, Plus, RotateCcw } from 'lucide-react';
+import { ArrowUp, RotateCcw, X } from 'lucide-react';
+import type { CSSProperties, FormEvent } from 'react';
 import { useRef, useState } from 'react';
 import { playClick, playRelease } from '../utils/audio';
 
@@ -10,6 +11,8 @@ interface Thought {
   id: number;
   text: string;
   left: number;
+  duration: number;
+  scale: number;
   released: boolean;
 }
 
@@ -20,80 +23,108 @@ export default function ThoughtBubbles({ onComplete }: ThoughtBubblesProps) {
   const [input, setInput] = useState('');
   const id = useRef(0);
 
+  const removeThought = (thoughtId: number) => {
+    setThoughts(items => items.filter(item => item.id !== thoughtId));
+  };
+
   const addThought = (value: string) => {
     const text = value.trim();
     if (!text) return;
+
+    const thoughtId = ++id.current;
+    const duration = 18 + Math.random() * 8;
     playClick();
     setThoughts(items => [
-      ...items.slice(-6),
-      { id: ++id.current, text, left: 10 + Math.random() * 65, released: false },
+      ...items.slice(-7),
+      {
+        id: thoughtId,
+        text,
+        left: 8 + Math.random() * 70,
+        duration,
+        scale: .9 + Math.random() * .18,
+        released: false,
+      },
     ]);
+    window.setTimeout(() => removeThought(thoughtId), duration * 1000);
     setInput('');
+  };
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    addThought(input);
   };
 
   const release = (thoughtId: number) => {
     setThoughts(items => items.map(item => item.id === thoughtId ? { ...item, released: true } : item));
     playRelease();
-    window.setTimeout(() => {
-      setThoughts(items => items.filter(item => item.id !== thoughtId));
-    }, 1800);
+    window.setTimeout(() => removeThought(thoughtId), 900);
   };
 
   return (
     <div className="practice-page free-practice-page thought-page">
-      <section className="free-practice-shell">
-        <div className="free-practice-heading">
-          <p className="eyebrow">自由练习</p>
+      <section className="thought-stage">
+        <div className="sky-light" aria-hidden="true" />
+
+        <header className="thought-heading">
           <h1>念头云朵</h1>
-          <p>写下来，再点它放走。</p>
+          <p>写下来，让它经过。</p>
+        </header>
+
+        <div className="thought-actions">
+          {thoughts.length > 0 && (
+            <button onClick={() => setThoughts([])}>
+              <RotateCcw size={15} />
+              清空
+            </button>
+          )}
+          <button onClick={onComplete}>
+            <X size={15} />
+            结束
+          </button>
         </div>
 
-        <div className="thought-sky">
-          <div className="sky-light" />
-          {thoughts.length === 0 && (
-            <div className="thought-empty">
-              <Cloud size={27} />
-              <span>念头出现时，先看看它。</span>
-            </div>
-          )}
+        {thoughts.length === 0 && (
+          <p className="thought-empty">此刻脑中正在说什么？</p>
+        )}
+
+        <div className="thought-cloud-layer" aria-live="polite">
           {thoughts.map(thought => (
             <button
               key={thought.id}
               className={thought.released ? 'thought-cloud released' : 'thought-cloud'}
-              style={{ left: `${thought.left}%` }}
+              style={{
+                '--cloud-left': `${thought.left}%`,
+                '--cloud-duration': `${thought.duration}s`,
+                '--cloud-scale': thought.scale,
+              } as CSSProperties}
               onClick={() => release(thought.id)}
+              aria-label={`放走念头：${thought.text}`}
             >
-              {thought.released ? '它正在经过' : thought.text}
+              <span>{thought.text}</span>
             </button>
           ))}
         </div>
 
-        <div className="thought-input-row">
-          <label>
-            <span>此刻脑中正在说什么？</span>
+        <form className="thought-composer" onSubmit={submit}>
+          <div className="thought-entry">
             <input
               value={input}
               onChange={event => setInput(event.target.value)}
-              onKeyDown={event => event.key === 'Enter' && addThought(input)}
-              placeholder="例如：我一定会搞砸"
+              placeholder="写下此刻的念头"
+              aria-label="写下此刻的念头"
             />
-          </label>
-          <button className="primary-action" onClick={() => addThought(input)} disabled={!input.trim()}>
-            <Plus size={17} />
-            放到云上
-          </button>
-        </div>
-
-        <div className="suggestion-row">
-          {suggestions.map(suggestion => (
-            <button key={suggestion} onClick={() => addThought(suggestion)}>{suggestion}</button>
-          ))}
-        </div>
-
-        <div className="free-footer-actions">
-          <button className="quiet-button" onClick={() => setThoughts([])}><RotateCcw size={15} /> 清空画面</button>
-          <button className="secondary-action" onClick={onComplete}>结束练习</button>
-        </div>
+            <button type="submit" disabled={!input.trim()} aria-label="放到云上">
+              <ArrowUp size={19} />
+            </button>
+          </div>
+          <div className="thought-suggestions">
+            {suggestions.map(suggestion => (
+              <button type="button" key={suggestion} onClick={() => addThought(suggestion)}>
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </form>
       </section>
     </div>
   );
