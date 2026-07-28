@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Leaf } from 'lucide-react';
+import AmbientMusic from './components/AmbientMusic';
 import BodyScan from './components/BodyScan';
 import BreathingExercise from './components/BreathingExercise';
 import GuidedMeditation from './components/GuidedMeditation';
@@ -41,7 +42,10 @@ export default function App() {
           <span className="brand-mark"><Leaf size={17} /></span>
           <span>Inner Space</span>
         </button>
-        <PracticeNav current={practice} onSelect={setPractice} />
+        <div className="topbar-actions">
+          <PracticeNav current={practice} onSelect={setPractice} />
+          <AmbientMusic />
+        </div>
       </header>
 
       <main>{renderPractice()}</main>
