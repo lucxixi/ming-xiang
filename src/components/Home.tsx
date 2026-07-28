@@ -12,7 +12,7 @@ export default function Home({ onSelect }: HomeProps) {
       <section className="welcome-stage">
         <div className="welcome-wash" aria-hidden="true" />
         <div className="hero-copy">
-          <h1 className="welcome-statement">给第一次冥想的三分钟</h1>
+          <h1 className="welcome-statement">开始一次10分钟的冥想</h1>
           <div className="welcome-actions">
             <button className="primary-action large" onClick={() => onSelect('body')}>
               <ScanLine size={17} />
