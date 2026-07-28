@@ -2,13 +2,14 @@ import { Music2, VolumeX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const AMBIENT_SRC = '/audio/ambient-focus.m4a';
-const AMBIENT_VOLUME = 0.7;
+const DEFAULT_AMBIENT_VOLUME = 0.7;
 
 export default function AmbientMusic() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const enabledRef = useRef(true);
   const [enabled, setEnabled] = useState(true);
   const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(DEFAULT_AMBIENT_VOLUME);
 
   useEffect(() => {
     enabledRef.current = enabled;
@@ -18,7 +19,7 @@ export default function AmbientMusic() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.volume = AMBIENT_VOLUME;
+    audio.volume = DEFAULT_AMBIENT_VOLUME;
 
     const tryToPlay = () => {
       if (!enabledRef.current || !audio.paused) return;
@@ -49,10 +50,38 @@ export default function AmbientMusic() {
 
     enabledRef.current = true;
     setEnabled(true);
+    const nextVolume = volume || DEFAULT_AMBIENT_VOLUME;
+    if (!volume) setVolume(nextVolume);
+    audio.volume = nextVolume;
     try {
       await audio.play();
     } catch {
       setPlaying(false);
+    }
+  };
+
+  const changeVolume = async (value: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    setVolume(value);
+    audio.volume = value;
+
+    if (value === 0) {
+      enabledRef.current = false;
+      setEnabled(false);
+      audio.pause();
+      return;
+    }
+
+    enabledRef.current = true;
+    setEnabled(true);
+    if (audio.paused) {
+      try {
+        await audio.play();
+      } catch {
+        setPlaying(false);
+      }
     }
   };
 
@@ -67,6 +96,17 @@ export default function AmbientMusic() {
         {enabled ? <Music2 size={16} /> : <VolumeX size={16} />}
         <span className={playing ? 'ambient-pulse is-playing' : 'ambient-pulse'} aria-hidden="true" />
       </button>
+      <input
+        type="range"
+        min="0"
+        max="1"
+        step="0.05"
+        value={volume}
+        onChange={event => changeVolume(Number(event.currentTarget.value))}
+        aria-label={`背景音乐音量 ${Math.round(volume * 100)}%`}
+        title={`背景音乐音量 ${Math.round(volume * 100)}%`}
+      />
+      <output aria-live="polite">{Math.round(volume * 100)}</output>
       <audio
         ref={audioRef}
         src={AMBIENT_SRC}

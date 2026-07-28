@@ -85,7 +85,17 @@ button:focus-visible, input:focus-visible {
   align-items: center;
   gap: 8px;
 }
-.ambient-music { flex: 0 0 auto; }
+.ambient-music {
+  flex: 0 0 auto;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px 0 2px;
+  border: 1px solid rgba(67, 169, 100, .16);
+  border-radius: 999px;
+  background: var(--leaf-pale);
+}
 .ambient-music audio { display: none; }
 .ambient-toggle {
   position: relative;
@@ -93,14 +103,28 @@ button:focus-visible, input:focus-visible {
   height: 34px;
   display: grid;
   place-items: center;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: 50%;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
 }
 .ambient-toggle:hover { color: var(--ink); background: rgba(255, 255, 255, .72); }
-.ambient-toggle.active { color: var(--leaf-dark); border-color: rgba(67, 169, 100, .16); background: var(--leaf-pale); }
+.ambient-toggle.active { color: var(--leaf-dark); background: transparent; }
+.ambient-music input[type='range'] {
+  width: 54px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--leaf);
+  cursor: pointer;
+}
+.ambient-music output {
+  min-width: 18px;
+  color: var(--leaf-dark);
+  font: 600 10px/1 var(--serif);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
 .ambient-pulse {
   position: absolute;
   right: 4px;
@@ -657,7 +681,8 @@ button:focus-visible, input:focus-visible {
 }
 
 .guided-choice-stage,
-.seated-guided-stage {
+.seated-guided-stage,
+.lying-guided-stage {
   position: relative;
   width: 100%;
   height: 100%;
@@ -669,7 +694,8 @@ button:focus-visible, input:focus-visible {
   background: url('/assets/after-rain-window.jpg') center / cover no-repeat;
 }
 .guided-choice-wash,
-.seated-guided-wash {
+.seated-guided-wash,
+.lying-guided-wash {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -736,15 +762,24 @@ button:focus-visible, input:focus-visible {
 .seated-guided-stage {
   background: url('/assets/rain-lake.jpg') center / cover no-repeat;
 }
-.seated-guided-wash {
+.lying-guided-stage {
+  background: url('/assets/after-rain-window.jpg') center / cover no-repeat;
+}
+.seated-guided-wash,
+.lying-guided-wash {
   background:
     radial-gradient(circle at 50% 50%, rgba(248, 252, 248, .32), rgba(235, 244, 238, .08) 46%, rgba(19, 55, 44, .12)),
     linear-gradient(180deg, rgba(242, 248, 243, .12), rgba(16, 51, 41, .18));
 }
-.seated-countdown {
+.lying-guided-wash {
+  background:
+    radial-gradient(circle at 50% 48%, rgba(249, 252, 248, .48), rgba(241, 246, 240, .12) 48%, rgba(25, 58, 48, .1)),
+    linear-gradient(180deg, rgba(248, 251, 247, .08), rgba(25, 58, 48, .14));
+}
+.guided-countdown {
   background: rgba(249, 252, 247, .82);
 }
-.seated-guided-caption {
+.full-guided-caption {
   position: absolute;
   z-index: 4;
   top: 52%;
@@ -753,7 +788,7 @@ button:focus-visible, input:focus-visible {
   text-align: center;
   transform: translate(-50%, -50%);
 }
-.seated-guided-caption h1 {
+.full-guided-caption h1 {
   margin: 0;
   font: 600 clamp(32px, 4.8vw, 62px)/1.42 var(--serif);
   letter-spacing: -.045em;
@@ -762,7 +797,7 @@ button:focus-visible, input:focus-visible {
     0 2px 24px rgba(250, 253, 249, .98),
     0 8px 44px rgba(250, 253, 249, .72);
 }
-.seated-guided-caption.is-empty { visibility: hidden; }
+.full-guided-caption.is-empty { visibility: hidden; }
 .guided-tool:hover { color: var(--ink); background: rgba(255, 255, 255, .72); }
 .guided-exit { color: #98564f; }
 .guided-timeline { min-width: 0; }
@@ -1132,8 +1167,8 @@ button:focus-visible, input:focus-visible {
   .guided-choice-content h1 { font-size: clamp(30px, 9vw, 42px); }
   .guided-mode-options { grid-template-columns: 1fr; margin-top: 22px; }
   .guided-mode-options button { min-height: 116px; }
-  .seated-guided-caption { width: calc(100% - 40px); }
-  .seated-guided-caption h1 { font-size: clamp(26px, 8vw, 38px); }
+  .full-guided-caption { width: calc(100% - 40px); }
+  .full-guided-caption h1 { font-size: clamp(26px, 8vw, 38px); }
   .thought-page .free-practice-shell { height: 100%; min-height: 0; display: flex; flex-direction: column; padding: 0; }
   .thought-page .free-practice-heading { order: 1; padding: 26px 24px 0; }
   .thought-sky { order: 0; width: 100%; min-height: 0; flex: 0 0 40%; }
