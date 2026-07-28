@@ -67,7 +67,7 @@ export default function ThoughtBubbles({ onComplete }: ThoughtBubblesProps) {
 
         <header className="thought-heading">
           <h1>念头云朵</h1>
-          <p>写下来，让它经过。</p>
+          <p>标记你的每一个想法，让它飘过</p>
         </header>
 
         <div className="thought-actions">
