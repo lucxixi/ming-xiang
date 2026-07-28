@@ -2,7 +2,7 @@ import { Music2, VolumeX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const AMBIENT_SRC = '/audio/ambient-focus.m4a';
-const AMBIENT_VOLUME = 0.38;
+const AMBIENT_VOLUME = 0.5;
 
 export default function AmbientMusic() {
   const audioRef = useRef<HTMLAudioElement>(null);
