@@ -1,25 +1,56 @@
 import { Music2, VolumeX } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { mediaUrl } from '../utils/assets';
 
 const AMBIENT_SRC = '/audio/ambient-focus.m4a';
 const DEFAULT_AMBIENT_VOLUME = 0.7;
+const VOLUME_KEY = 'inner-space:ambient-volume';
+const ENABLED_KEY = 'inner-space:ambient-enabled';
+
+function storedVolume() {
+  try {
+    const value = Number(localStorage.getItem(VOLUME_KEY));
+    return Number.isFinite(value) && value >= 0 && value <= 1 ? value : DEFAULT_AMBIENT_VOLUME;
+  } catch {
+    return DEFAULT_AMBIENT_VOLUME;
+  }
+}
 
 export default function AmbientMusic() {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const enabledRef = useRef(true);
-  const [enabled, setEnabled] = useState(true);
+  const [volume, setVolume] = useState(storedVolume);
+  const [enabled, setEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(ENABLED_KEY) !== 'false' && volume > 0;
+    } catch {
+      return volume > 0;
+    }
+  });
+  const enabledRef = useRef(enabled);
   const [playing, setPlaying] = useState(false);
-  const [volume, setVolume] = useState(DEFAULT_AMBIENT_VOLUME);
 
   useEffect(() => {
     enabledRef.current = enabled;
+    try {
+      localStorage.setItem(ENABLED_KEY, String(enabled));
+    } catch {
+      // Preferences remain available for this session.
+    }
   }, [enabled]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(VOLUME_KEY, String(volume));
+    } catch {
+      // Preferences remain available for this session.
+    }
+  }, [volume]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    audio.volume = DEFAULT_AMBIENT_VOLUME;
+    audio.volume = storedVolume();
 
     const tryToPlay = () => {
       if (!enabledRef.current || !audio.paused) return;
@@ -35,7 +66,7 @@ export default function AmbientMusic() {
       document.removeEventListener('keydown', tryToPlay, true);
       audio.pause();
     };
-  }, []);
+  }, []); // The element is initialized once; later volume changes are handled by changeVolume.
 
   const toggle = async () => {
     const audio = audioRef.current;
@@ -109,10 +140,10 @@ export default function AmbientMusic() {
       <output aria-live="polite">{Math.round(volume * 100)}</output>
       <audio
         ref={audioRef}
-        src={AMBIENT_SRC}
-        autoPlay
+        src={mediaUrl(AMBIENT_SRC)}
+        autoPlay={enabled}
         loop
-        preload="auto"
+        preload="metadata"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
       />

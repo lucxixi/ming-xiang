@@ -1,7 +1,8 @@
 import { Pause, Play } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useState } from 'react';
+import { useGuidedAudio } from '../hooks/useGuidedAudio';
 import { playChime, playClick } from '../utils/audio';
-import { activeCaptionAt, parseSrt, type CaptionCue } from '../utils/subtitles';
+import AudioSessionState from './AudioSessionState';
 import PracticeComplete from './PracticeComplete';
 
 interface BodyScanProps {
@@ -18,56 +19,26 @@ function formatTime(value: number) {
 }
 
 export default function BodyScan({ onComplete }: BodyScanProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [elapsed, setElapsed] = useState(0);
-  const [duration, setDuration] = useState(FALLBACK_DURATION);
-  const [running, setRunning] = useState(false);
   const [finished, setFinished] = useState(false);
-  const [cues, setCues] = useState<CaptionCue[]>([]);
-
-  useEffect(() => {
-    fetch(SUBTITLE_SRC)
-      .then(response => response.text())
-      .then(source => setCues(parseSrt(source)))
-      .catch(() => setCues([]));
-  }, []);
-
-  const activeCaption = useMemo(() => {
-    return activeCaptionAt(cues, elapsed);
-  }, [cues, elapsed]);
+  const session = useGuidedAudio({
+    sessionKey: 'body-scan',
+    audioPath: AUDIO_SRC,
+    subtitlePath: SUBTITLE_SRC,
+    fallbackDuration: FALLBACK_DURATION,
+    onEnded: () => {
+      playChime();
+      setFinished(true);
+    },
+  });
 
   const restart = () => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-    }
-    setElapsed(0);
-    setRunning(false);
+    session.restart();
     setFinished(false);
   };
 
   const togglePlayback = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
     playClick();
-    if (audio.paused) {
-      try {
-        await audio.play();
-      } catch {
-        setRunning(false);
-      }
-    } else {
-      audio.pause();
-    }
-  };
-
-  const finish = () => {
-    audioRef.current?.pause();
-    setRunning(false);
-    setFinished(true);
-    playChime();
+    await session.togglePlayback();
   };
 
   if (finished) {
@@ -85,30 +56,34 @@ export default function BodyScan({ onComplete }: BodyScanProps) {
           <div className="body-audio-shade" aria-hidden="true" />
 
           <button
-            className={running ? 'countdown-bubble is-running' : 'countdown-bubble'}
+            className={session.running ? 'countdown-bubble is-running' : 'countdown-bubble'}
             onClick={togglePlayback}
-            aria-label={running ? '暂停身体扫描' : '播放身体扫描'}
+            aria-label={session.running ? '暂停身体扫描' : '播放身体扫描'}
           >
             <span className="countdown-icon" aria-hidden="true">
-              {running ? <Pause size={17} /> : <Play size={17} />}
+              {session.running ? <Pause size={17} /> : <Play size={17} />}
             </span>
-            <time>{formatTime(duration - elapsed)}</time>
+            <time>{formatTime(session.duration - session.elapsed)}</time>
           </button>
 
-          <div className={activeCaption ? 'body-caption' : 'body-caption is-empty'} aria-live="polite">
-            {activeCaption && <h1>{activeCaption}</h1>}
+          <div className={session.caption ? 'body-caption' : 'body-caption is-empty'}>
+            {session.caption && <h1>{session.caption}</h1>}
           </div>
+
+          <AudioSessionState
+            loadState={session.loadState}
+            resumeAt={session.resumeAt}
+            onResume={() => session.begin(true)}
+            onRestart={() => session.begin(false)}
+            onRetry={session.retry}
+          />
         </div>
 
         <audio
-          ref={audioRef}
-          src={AUDIO_SRC}
+          ref={session.audioRef}
+          src={session.audioSrc}
           preload="metadata"
-          onLoadedMetadata={event => setDuration(event.currentTarget.duration)}
-          onTimeUpdate={event => setElapsed(event.currentTarget.currentTime)}
-          onPlay={() => setRunning(true)}
-          onPause={() => setRunning(false)}
-          onEnded={finish}
+          {...session.audioProps}
         />
       </section>
     </div>

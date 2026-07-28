@@ -1,10 +1,14 @@
 import { ArrowLeft, BedDouble, Pause, Play, UserRound } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useGuidedAudio } from '../hooks/useGuidedAudio';
 import { playChime, playClick } from '../utils/audio';
-import { activeCaptionAt, parseSrt, type CaptionCue } from '../utils/subtitles';
+import type { GuidedRouteMode } from '../utils/routes';
+import AudioSessionState from './AudioSessionState';
 import PracticeComplete from './PracticeComplete';
 
 interface GuidedMeditationProps {
+  initialMode?: GuidedRouteMode;
+  onModeChange?: (mode: GuidedRouteMode) => void;
   onComplete: () => void;
 }
 
@@ -41,35 +45,20 @@ function GuidedSession({
   onBack,
   onFinish,
 }: GuidedSessionProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [elapsed, setElapsed] = useState(0);
-  const [duration, setDuration] = useState(fallbackDuration);
-  const [running, setRunning] = useState(false);
-  const [cues, setCues] = useState<CaptionCue[]>([]);
-
-  useEffect(() => {
-    fetch(subtitleSrc)
-      .then(response => response.text())
-      .then(source => setCues(parseSrt(source)))
-      .catch(() => setCues([]));
-  }, [subtitleSrc]);
-
-  const caption = useMemo(() => activeCaptionAt(cues, elapsed), [cues, elapsed]);
+  const session = useGuidedAudio({
+    sessionKey: `${mode}-meditation`,
+    audioPath: audioSrc,
+    subtitlePath: subtitleSrc,
+    fallbackDuration,
+    onEnded: () => {
+      playChime();
+      onFinish();
+    },
+  });
 
   const togglePlayback = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
     playClick();
-    if (audio.paused) {
-      try {
-        await audio.play();
-      } catch {
-        setRunning(false);
-      }
-    } else {
-      audio.pause();
-    }
+    await session.togglePlayback();
   };
 
   return (
@@ -82,41 +71,52 @@ function GuidedSession({
       </button>
 
       <button
-        className={running ? 'countdown-bubble guided-countdown is-running' : 'countdown-bubble guided-countdown'}
+        className={session.running ? 'countdown-bubble guided-countdown is-running' : 'countdown-bubble guided-countdown'}
         onClick={togglePlayback}
-        aria-label={running ? `暂停${title}` : `播放${title}`}
+        aria-label={session.running ? `暂停${title}` : `播放${title}`}
       >
         <span className="countdown-icon" aria-hidden="true">
-          {running ? <Pause size={17} /> : <Play size={17} />}
+          {session.running ? <Pause size={17} /> : <Play size={17} />}
         </span>
-        <time>{formatTime(duration - elapsed)}</time>
+        <time>{formatTime(session.duration - session.elapsed)}</time>
       </button>
 
-      <div className={caption ? 'full-guided-caption' : 'full-guided-caption is-empty'} aria-live="polite">
-        {caption && <h1>{caption}</h1>}
+      <div className={session.caption ? 'full-guided-caption' : 'full-guided-caption is-empty'}>
+        {session.caption && <h1>{session.caption}</h1>}
       </div>
 
+      <AudioSessionState
+        loadState={session.loadState}
+        resumeAt={session.resumeAt}
+        onResume={() => session.begin(true)}
+        onRestart={() => session.begin(false)}
+        onRetry={session.retry}
+      />
+
       <audio
-        ref={audioRef}
-        src={audioSrc}
+        ref={session.audioRef}
+        src={session.audioSrc}
         preload="metadata"
-        onLoadedMetadata={event => setDuration(event.currentTarget.duration)}
-        onTimeUpdate={event => setElapsed(event.currentTarget.currentTime)}
-        onPlay={() => setRunning(true)}
-        onPause={() => setRunning(false)}
-        onEnded={() => {
-          setRunning(false);
-          playChime();
-          onFinish();
-        }}
+        {...session.audioProps}
       />
     </section>
   );
 }
 
-export default function GuidedMeditation({ onComplete }: GuidedMeditationProps) {
-  const [mode, setMode] = useState<GuidedMode>('choice');
+export default function GuidedMeditation({
+  initialMode = 'choice',
+  onModeChange,
+  onComplete,
+}: GuidedMeditationProps) {
+  const [mode, setMode] = useState<GuidedMode>(initialMode);
   const [finished, setFinished] = useState(false);
+
+  useEffect(() => setMode(initialMode), [initialMode]);
+
+  const changeMode = (nextMode: GuidedMode) => {
+    setMode(nextMode);
+    onModeChange?.(nextMode);
+  };
 
   if (finished) {
     return (
@@ -139,12 +139,12 @@ export default function GuidedMeditation({ onComplete }: GuidedMeditationProps) 
           <div className="guided-choice-content">
             <h1>选择练习姿势</h1>
             <div className="guided-mode-options">
-              <button onClick={() => setMode('seated')}>
+              <button onClick={() => changeMode('seated')}>
                 <span className="mode-icon"><UserRound size={22} /></span>
                 <strong>静坐冥想</strong>
                 <small>引导与字幕 · 20 分钟</small>
               </button>
-              <button onClick={() => setMode('lying')}>
+              <button onClick={() => changeMode('lying')}>
                 <span className="mode-icon"><BedDouble size={22} /></span>
                 <strong>躺平冥想</strong>
                 <small>引导与字幕 · 18 分钟</small>
@@ -161,7 +161,7 @@ export default function GuidedMeditation({ onComplete }: GuidedMeditationProps) 
           audioSrc={SEATED_AUDIO_SRC}
           subtitleSrc={SEATED_SUBTITLE_SRC}
           fallbackDuration={SEATED_FALLBACK_DURATION}
-          onBack={() => setMode('choice')}
+          onBack={() => changeMode('choice')}
           onFinish={() => setFinished(true)}
         />
       )}
@@ -173,7 +173,7 @@ export default function GuidedMeditation({ onComplete }: GuidedMeditationProps) 
           audioSrc={LYING_AUDIO_SRC}
           subtitleSrc={LYING_SUBTITLE_SRC}
           fallbackDuration={LYING_FALLBACK_DURATION}
-          onBack={() => setMode('choice')}
+          onBack={() => changeMode('choice')}
           onFinish={() => setFinished(true)}
         />
       )}

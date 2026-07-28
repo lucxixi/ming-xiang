@@ -1,11 +1,15 @@
 import { ArrowLeft, Pause, Play, Sparkles, Waves } from 'lucide-react';
 import type { CSSProperties } from 'react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useGuidedAudio } from '../hooks/useGuidedAudio';
 import { playBreathIn, playBreathOut, playChime, playClick } from '../utils/audio';
-import { activeCaptionAt, parseSrt, type CaptionCue } from '../utils/subtitles';
+import type { BreathingRouteMode } from '../utils/routes';
+import AudioSessionState from './AudioSessionState';
 import PracticeComplete from './PracticeComplete';
 
 interface BreathingExerciseProps {
+  initialMode?: BreathingRouteMode;
+  onModeChange?: (mode: BreathingRouteMode) => void;
   onComplete: () => void;
 }
 
@@ -23,34 +27,20 @@ function formatTime(value: number) {
 }
 
 function GuidedBreathing({ onBack, onFinish }: { onBack: () => void; onFinish: () => void }) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [elapsed, setElapsed] = useState(0);
-  const [duration, setDuration] = useState(GUIDED_FALLBACK_DURATION);
-  const [running, setRunning] = useState(false);
-  const [cues, setCues] = useState<CaptionCue[]>([]);
-
-  useEffect(() => {
-    fetch(GUIDED_SUBTITLE_SRC)
-      .then(response => response.text())
-      .then(source => setCues(parseSrt(source)))
-      .catch(() => setCues([]));
-  }, []);
-
-  const caption = useMemo(() => activeCaptionAt(cues, elapsed), [cues, elapsed]);
+  const session = useGuidedAudio({
+    sessionKey: 'guided-breathing',
+    audioPath: GUIDED_AUDIO_SRC,
+    subtitlePath: GUIDED_SUBTITLE_SRC,
+    fallbackDuration: GUIDED_FALLBACK_DURATION,
+    onEnded: () => {
+      playChime();
+      onFinish();
+    },
+  });
 
   const togglePlayback = async () => {
-    const audio = audioRef.current;
-    if (!audio) return;
     playClick();
-    if (audio.paused) {
-      try {
-        await audio.play();
-      } catch {
-        setRunning(false);
-      }
-    } else {
-      audio.pause();
-    }
+    await session.togglePlayback();
   };
 
   return (
@@ -63,33 +53,33 @@ function GuidedBreathing({ onBack, onFinish }: { onBack: () => void; onFinish: (
       </button>
 
       <button
-        className={running ? 'countdown-bubble breathing-countdown is-running' : 'countdown-bubble breathing-countdown'}
+        className={session.running ? 'countdown-bubble breathing-countdown is-running' : 'countdown-bubble breathing-countdown'}
         onClick={togglePlayback}
-        aria-label={running ? '暂停引导呼吸' : '播放引导呼吸'}
+        aria-label={session.running ? '暂停引导呼吸' : '播放引导呼吸'}
       >
         <span className="countdown-icon" aria-hidden="true">
-          {running ? <Pause size={17} /> : <Play size={17} />}
+          {session.running ? <Pause size={17} /> : <Play size={17} />}
         </span>
-        <time>{formatTime(duration - elapsed)}</time>
+        <time>{formatTime(session.duration - session.elapsed)}</time>
       </button>
 
-      <div className={caption ? 'guided-breathing-caption' : 'guided-breathing-caption is-empty'} aria-live="polite">
-        {caption && <h1>{caption}</h1>}
+      <div className={session.caption ? 'guided-breathing-caption' : 'guided-breathing-caption is-empty'}>
+        {session.caption && <h1>{session.caption}</h1>}
       </div>
 
+      <AudioSessionState
+        loadState={session.loadState}
+        resumeAt={session.resumeAt}
+        onResume={() => session.begin(true)}
+        onRestart={() => session.begin(false)}
+        onRetry={session.retry}
+      />
+
       <audio
-        ref={audioRef}
-        src={GUIDED_AUDIO_SRC}
+        ref={session.audioRef}
+        src={session.audioSrc}
         preload="metadata"
-        onLoadedMetadata={event => setDuration(event.currentTarget.duration)}
-        onTimeUpdate={event => setElapsed(event.currentTarget.currentTime)}
-        onPlay={() => setRunning(true)}
-        onPause={() => setRunning(false)}
-        onEnded={() => {
-          setRunning(false);
-          playChime();
-          onFinish();
-        }}
+        {...session.audioProps}
       />
     </section>
   );
@@ -169,9 +159,20 @@ function FourFourBreathing({ onBack }: { onBack: () => void }) {
   );
 }
 
-export default function BreathingExercise({ onComplete }: BreathingExerciseProps) {
-  const [mode, setMode] = useState<BreathingMode>('choice');
+export default function BreathingExercise({
+  initialMode = 'choice',
+  onModeChange,
+  onComplete,
+}: BreathingExerciseProps) {
+  const [mode, setMode] = useState<BreathingMode>(initialMode);
   const [finished, setFinished] = useState(false);
+
+  useEffect(() => setMode(initialMode), [initialMode]);
+
+  const changeMode = (nextMode: BreathingMode) => {
+    setMode(nextMode);
+    onModeChange?.(nextMode);
+  };
 
   if (finished) {
     return (
@@ -180,7 +181,7 @@ export default function BreathingExercise({ onComplete }: BreathingExerciseProps
           onLeave={onComplete}
           onAgain={() => {
             setFinished(false);
-            setMode('guided');
+            changeMode('guided');
           }}
         />
       </div>
@@ -195,12 +196,12 @@ export default function BreathingExercise({ onComplete }: BreathingExerciseProps
           <div className="breathing-choice-content">
             <h1>选择一种呼吸</h1>
             <div className="breathing-mode-options">
-              <button onClick={() => setMode('guided')}>
+              <button onClick={() => changeMode('guided')}>
                 <span className="mode-icon"><Waves size={22} /></span>
                 <strong>引导呼吸</strong>
                 <small>旁白与字幕 · 12 分钟</small>
               </button>
-              <button onClick={() => setMode('four-four')}>
+              <button onClick={() => changeMode('four-four')}>
                 <span className="mode-icon"><Sparkles size={22} /></span>
                 <strong>四四呼吸法</strong>
                 <small>4 秒吸气 · 4 秒呼气</small>
@@ -211,10 +212,10 @@ export default function BreathingExercise({ onComplete }: BreathingExerciseProps
       )}
 
       {mode === 'guided' && (
-        <GuidedBreathing onBack={() => setMode('choice')} onFinish={() => setFinished(true)} />
+        <GuidedBreathing onBack={() => changeMode('choice')} onFinish={() => setFinished(true)} />
       )}
 
-      {mode === 'four-four' && <FourFourBreathing onBack={() => setMode('choice')} />}
+      {mode === 'four-four' && <FourFourBreathing onBack={() => changeMode('choice')} />}
     </div>
   );
 }
